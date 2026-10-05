@@ -1,0 +1,19 @@
+[project]
+name = "api_organiza_ai"
+version = "1.0.0"
+description = "API financeira pessoal para registro, categorização e acompanhamento de transações financeiras"
+requires-python = ">=3.11"
+dependencies = [
+    "flask",
+    "flask-sqlalchemy",
+    "flask-Migrate",
+    "flask-pydantic",
+    "flask-jwt-extended",
+    "flasgger",
+    "pytest",
+    "Faker"
+]
+
+[tool.setuptools.packages.find]
+include = ["api_organiza_ai*"]
+exclude = ["instance*", "migrations*"]
