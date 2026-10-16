@@ -16,18 +16,18 @@ class PaymentMethod(str, Enum):
     BOLETO = 'boleto'
 
 class UserSchema(BaseModel):
-    name: str = Field(ge=3)
-    cpf: str = Field(ge=11, le=14)
+    name: str = Field(min_length=3)
+    cpf: str = Field(min_length=11, max_length=14)
     email: EmailStr
-    phone: str = Field(ge=10, le=15)
-    password: str = Field(ge=6)
+    phone: str = Field(min_length=10, max_length=15)
+    password: str = Field(min_length=6)
 
 class CategorySchema(BaseModel):
-    name: str = Field(ge=3)
+    name: str = Field(min_length=3)
     type: TransactionType
 
-class TransactionSchmea(BaseModel):
-    description: str = Field(ge=3)
+class TransactionSchema(BaseModel):
+    description: str = Field(min_length=3)
     amount: Decimal
     type: TransactionType
     date: date
