@@ -2,12 +2,13 @@ from pydantic import BaseModel, Field , EmailStr
 from decimal import Decimal
 from datetime import date
 from uuid import UUID
+from enum import Enum
 
-class TransactionType():
+class TransactionType(str, Enum):
     INCOME = 'income'
     EXPENSE = 'expense'
 
-class PaymentMethod():
+class PaymentMethod(str, Enum):
     CREDIT = 'credito'
     DEBIT = 'debito'
     PIX = 'pix'
