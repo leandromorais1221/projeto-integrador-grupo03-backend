@@ -10,6 +10,9 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
+    from .extensions import cors
+    cors.init_app(app)
+
     from . extensions import swagger
     swagger.init_app(app)
 
