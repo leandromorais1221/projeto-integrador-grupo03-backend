@@ -102,6 +102,7 @@ def auth_register(body: UserSchema):
         }), 500
 
     return jsonify({
+        "message": "Usuário cadastrado com sucesso.",
         "data": user.to_dict()
     }), 201
 
@@ -203,6 +204,7 @@ def auth_login(body: LoginSchema):
     access_token = create_access_token(identity=str(user.id))
 
     return jsonify({
+        "message": "Login efetuado com sucesso.",
         "access_token": access_token,
         "token_type": "Bearer"
     }), 200
@@ -281,12 +283,7 @@ def auth_me():
     current_user_id = UUID(get_jwt_identity())
     stmt = select(User).where(User.id == current_user_id)
     user = db.session.execute(stmt).scalar()
-
-    if user is None:
-        return jsonify({
-            "message": "Usuário não encontrado"
-        }), 404
-
+    
     return jsonify({
         "data": user.to_dict()
     }), 200
