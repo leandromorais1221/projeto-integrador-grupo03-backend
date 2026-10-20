@@ -6,16 +6,15 @@ import pytest
 def app():
     app = create_app(test_config={
         'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///sorage_test.db',
+        'SQLALCHEMY_DATABASE_URI': 'sqlite:///storage_test.db',
     })
 
     with app.app_context():
         db.create_all()
 
-    yield app
+        yield app
 
-    db.drop_all()
-
+        db.drop_all()
 
 @pytest.fixture()
 def client(app: Flask):
