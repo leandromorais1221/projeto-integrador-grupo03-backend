@@ -22,6 +22,10 @@ class UserSchema(BaseModel):
     phone: str = Field(min_length=10, max_length=15)
     password: str = Field(min_length=6)
 
+class LoginSchema(BaseModel):
+    email: str
+    password: str
+
 class CategorySchema(BaseModel):
     name: str = Field(min_length=3)
     type: TransactionType

@@ -37,6 +37,15 @@ class User(db.Model):
     categories: Mapped[list["Category"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     transactions: Mapped[list["Transaction"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "cpf": self.cpf,
+            "phone": self.phone
+        }
+
     def __repr__(self):
         return f'<User {self.email}>'
 

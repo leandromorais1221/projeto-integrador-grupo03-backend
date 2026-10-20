@@ -1,104 +1,292 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_pydantic import validate
+from ..schemas import UserSchema, LoginSchema
 from api_organiza_ai.extensions import db
+from sqlalchemy import select
 from api_organiza_ai.models import User
+from sqlalchemy.exc import SQLAlchemyError
+from uuid import UUID
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-#registro
-@auth_bp.route('/register', methods=['POST'])
-def register():
-  data = request.get_json() or {}
+@bp.post('/register')
+@validate()
+def auth_register(body: UserSchema):
+    """
+    Cadastra um novo usuário.
+    ---
+    tags:
+      - Usuários
+    summary: Cadastro de usuário
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Dados para cadastro do usuário.
+        schema:
+          type: object
+          required:
+            - name
+            - cpf
+            - email
+            - phone
+            - password
+          properties:
+            name:
+              type: string
+              minLength: 3
+              example: "João da Silva"
+            cpf:
+              type: string
+              minLength: 11
+              maxLength: 14
+              example: "12345678900"
+            email:
+              type: string
+              format: email
+              example: "joao@email.com"
+            phone:
+              type: string
+              minLength: 10
+              maxLength: 15
+              example: "11987654321"
+            password:
+              type: string
+              minLength: 6
+              example: "senha123"
+    responses:
+      400:
+        description: CPF ou e-mail já cadastrado.
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "CPF ou Email já cadastrado"
+      500:
+        description: Erro ao cadastrar o usuário.
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Erro ao cadastrar o usuário."
+    """
 
-  name = data.get('name', '').strip()
-  cpf = data.get('cpf', '')
-  email = data.get('email', '')
-  password = data.get('password', '')
+    stmt = select(User).where((User.cpf == body.cpf) | (User.email == body.email))
+    registered = db.session.execute(stmt).scalar()
 
-  raw_phone = data.get('phone', '')
-  phone = ''.join(filter(str.isdigit, raw_phone))
+    if registered:
+        return jsonify({
+            "message": "CPF ou Email já cadastrado"
+        }), 400
 
-  #Validação
-  if len(name) < 3:
-    return jsonify({"message": "O nome deve ter no mínimo 3 caracteres."}), 400
-  if not cpf or len(cpf) < 11:
-        return jsonify({"message": "CPF inválido."}), 400
-  if not email or '@' not in email:
-        return jsonify({"message": "E-mail inválido."}), 400
-  if not phone or len(phone) not in [10, 11]:
-        return jsonify({"message": "Telefone inválido."}), 400
-  if not password or len(password) < 6:
-        return jsonify({"message": "A senha deve ter no mínimo 6 caracteres."}), 400
+    try:
+        user = User(
+            name=body.name,
+            email=body.email,
+            cpf=body.cpf,
+            phone=body.phone,
+            password_hash=generate_password_hash(body.password)
+        )
 
+        db.session.add(user)
+        db.session.commit()
 
-  if db.session.scalar(db.select(User).where(User.cpf == cpf)):
-        return jsonify({"message": "CPF já cadastrado"}), 400
-  if db.session.scalar(db.select(User).where(User.email == email)):
-        return jsonify({"message": "E-mail já cadastrado"}), 400
+    except SQLAlchemyError:
+        db.session.rollback()
+        return jsonify({
+            "message": "Erro ao cadastrar o usuário."
+        }), 500
 
-  #utilizador
-  new_user = User(
-        name=name,
-        email=email,
-        cpf=cpf,
-        phone=phone, 
-        password_hash=generate_password_hash(password)
-    )
-
-  try:
-      db.session.add(new_user)
-      db.session.commit()
-  except Exception as e:
-      db.session.rollback()
-      return jsonify({"message": "Erro interno ao cadastrar o usuário."}), 500
-
-  #resposta
-  return jsonify({
-        "id": str(new_user.id),
-        "name": new_user.name,
-        "email": new_user.email,
-        "cpf": new_user.cpf,
-        "phone": new_user.phone
+    return jsonify({
+        "data": user.to_dict()
     }), 201
 
-#login
-@auth_bp.route('/login', methods = ['POST'])
-def login():
-     data = request.get_json() or {}
+@bp.post('/login')
+@validate()
+def auth_login(body: LoginSchema):
+    """
+    Autentica um usuário e retorna um token de acesso JWT.
 
-     email = data.get('email')
-     password = data.get('password')
+    ---
+    tags:
+      - Autenticação
+    summary: Realizar login
+    description: >
+      Autentica um usuário por meio do e-mail e da senha informados.
+      Caso as credenciais sejam inválidas, retorna uma mensagem de erro.
+      Em caso de sucesso, gera e retorna um token de acesso JWT.
 
-     try:
-       user = db.session.scalar(db.select(User).where(User.email == email))
-     except Exception as e:
-       return jsonify({"message": "Erro interno ao consultar o banco de dados."}), 500
+    consumes:
+      - application/json
 
-     if not user or not check_password_hash(user.password_hash, password):
-        return jsonify({"message": "Credenciais inválidas"}), 401
+    produces:
+      - application/json
 
-     access_token = create_access_token(identity=str(user.id))
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Dados necessários para autenticação do usuário.
+        schema:
+          type: object
+          required:
+            - email
+            - password
+          properties:
+            email:
+              type: string
+              format: email
+              description: E-mail cadastrado do usuário.
+              example: joao@email.com
+            password:
+              type: string
+              description: Senha do usuário.
+              example: senha123
 
-     #resposta
-     return jsonify({
+    responses:
+      200:
+        description: Autenticação realizada com sucesso.
+        schema:
+          type: object
+          properties:
+            access_token:
+              type: string
+              description: Token JWT de acesso.
+            token_type:
+              type: string
+              description: Tipo do token de autenticação.
+              example: Bearer
+        examples:
+          application/json:
+            access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            token_type: "Bearer"
+
+      401:
+        description: Credenciais inválidas.
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Credenciais inválidas
+
+      500:
+        description: Erro interno ao consultar o banco de dados.
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Erro consulte o suporte técnico.
+    """
+    try:
+        stmt = select(User).where(User.email == body.email)
+        user = db.session.execute(stmt).scalar()
+    except SQLAlchemyError:
+        return jsonify({
+            "message": "Erro consulte o suporte técnico."
+        }), 500
+
+    if not user or not check_password_hash(
+        user.password_hash,
+        body.password
+    ):
+    
+      return jsonify({
+            "message": "Credenciais inválidas"
+        }), 401
+
+    access_token = create_access_token(identity=str(user.id))
+
+    return jsonify({
         "access_token": access_token,
         "token_type": "Bearer"
     }), 200
 
-@auth_bp.route('/me', methods=['GET'])
+@bp.get('/me')
 @jwt_required()
-def me():
-  current_user_id = get_jwt_identity()
-  user = db.session.scalar(db.select(User).where(User.id == current_user_id))
+def auth_me():
+    """
+    Retorna os dados do usuário autenticado.
 
-  if not user:
-        return jsonify({"message": "Usuário não encontrado"}), 404
+    ---
+    tags:
+      - Autenticação
+    summary: Consultar usuário autenticado
+    description: >
+      Obtém a identidade do usuário por meio do token JWT enviado
+      na requisição e retorna seus dados cadastrais.
+      Caso o usuário não seja encontrado, retorna um erro 404.
+      É necessário enviar um token JWT válido para acessar este endpoint.
 
-  return jsonify({
-        "id": str(user.id),
-        "name": user.name,
-        "email": user.email,
-        "cpf": user.cpf,
-        "phone": user.phone
+    produces:
+      - application/json
+
+    security:
+      - Bearer: []
+
+    responses:
+      200:
+        description: Dados do usuário autenticado retornados com sucesso.
+        schema:
+          type: object
+          properties:
+            data:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Identificador do usuário.
+                  example: "1"
+                name:
+                  type: string
+                  description: Nome do usuário.
+                  example: "João da Silva"
+                email:
+                  type: string
+                  format: email
+                  description: E-mail do usuário.
+                  example: "joao@email.com"
+                cpf:
+                  type: string
+                  description: CPF do usuário.
+                  example: "12345678900"
+                phone:
+                  type: string
+                  description: Telefone do usuário.
+                  example: "11987654321"
+
+      401:
+        description: Token JWT ausente, inválido ou expirado.
+        schema:
+          type: object
+          properties:
+            msg:
+              type: string
+              example: "Missing Authorization Header"
+
+      404:
+        description: Usuário não encontrado.
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Usuário não encontrado"
+    """
+    current_user_id = UUID(get_jwt_identity())
+    stmt = select(User).where(User.id == current_user_id)
+    user = db.session.execute(stmt).scalar()
+
+    if user is None:
+        return jsonify({
+            "message": "Usuário não encontrado"
+        }), 404
+
+    return jsonify({
+        "data": user.to_dict()
     }), 200
