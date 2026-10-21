@@ -1,4 +1,5 @@
 from flask import Flask
+from .blueprints import transactions
 from .models import *
 
 
@@ -23,7 +24,9 @@ def create_app(test_config=None):
     from .extensions import jwt
     jwt.init_app(app)
 
-    from .blueprints import auth
+    from .blueprints import auth, categories, transactions
     app.register_blueprint(auth.bp)
+    app.register_blueprint(categories.bp)
+    app.register_blueprint(transactions.bp)
 
     return app
