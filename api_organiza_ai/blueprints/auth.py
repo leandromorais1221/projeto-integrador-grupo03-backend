@@ -184,22 +184,14 @@ def auth_login(body: LoginSchema):
               type: string
               example: Erro consulte o suporte técnico.
     """
-    try:
-        stmt = select(User).where(User.email == body.email)
-        user = db.session.execute(stmt).scalar()
-    except SQLAlchemyError:
-        return jsonify({
-            "message": "Erro consulte o suporte técnico."
-        }), 500
-
-    if not user or not check_password_hash(
-        user.password_hash,
-        body.password
-    ):
     
+    stmt = select(User).where(User.email == body.email)
+    user = db.session.execute(stmt).scalar()
+
+    if not user or not check_password_hash(user.password_hash, body.password):
       return jsonify({
-            "message": "Credenciais inválidas"
-        }), 401
+          "message": "Credenciais inválidas"
+      }), 401
 
     access_token = create_access_token(identity=str(user.id))
 
@@ -280,6 +272,7 @@ def auth_me():
               type: string
               example: "Usuário não encontrado"
     """
+    
     current_user_id = UUID(get_jwt_identity())
     stmt = select(User).where(User.id == current_user_id)
     user = db.session.execute(stmt).scalar()

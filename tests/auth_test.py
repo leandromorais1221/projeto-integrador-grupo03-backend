@@ -1,4 +1,4 @@
-from conftest import AuthAction
+
 
 def test_rejeita_nome_com_menos_de_3_caracteres(client):
     body = {
@@ -56,6 +56,7 @@ def test_rejeita_telefone_com_menos_de_10_caracteres(client):
         '/auth/register',
         json=body
     )
+    assert response.status_code == 400
     validation_data = response.json['validation_error']['body_params'][3]
     assert validation_data['msg'] == 'String should have at least 10 characters'
 
@@ -67,6 +68,7 @@ def test_rejeita_telefone_com_mais_de_15_caracteres(client):
         '/auth/register',
         json=body
     )
+    assert response.status_code == 400
     validation_data = response.json['validation_error']['body_params'][3]
     assert validation_data['msg'] == 'String should have at most 15 characters'
 
@@ -78,9 +80,9 @@ def test_rejeita_senha_com_menos_de_6_caracteres(client):
         '/auth/register',
         json=body
     )
+    assert response.status_code == 400
     validation_data = response.json['validation_error']['body_params'][4]
     assert validation_data['msg'] == 'String should have at least 6 characters'
-
 
 def test_registra_usuario_com_dados_validos(client):
     body = {
@@ -121,6 +123,18 @@ def test_rejeita_cadastro_de_cpf_e_email_ja_cadastrado(client):
     assert data['message'] == "CPF ou Email já cadastrado"
 
 
+def test_rejeita_login_sem_email_e_senha(client):
+    response = client.post(
+        '/auth/login',
+        json={}
+    )
+    assert response.status_code == 400
+    validation_data = response.json['validation_error']['body_params'][0]
+    assert validation_data['msg'] == "Field required"
+    validation_data = response.json['validation_error']['body_params'][1]
+    assert validation_data['msg'] == "Field required"
+
+
 def test_valida_se_login_retorna_access_token(client):
     body = {
         'email': 'usuarioteste@gmail.com',
@@ -146,3 +160,4 @@ def test_deve_retornar_informacoes_do_usuario_logado(auth):
     assert 'email' in data
     assert 'name' in data
     assert 'phone' in data
+
