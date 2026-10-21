@@ -61,6 +61,14 @@ class Category(db.Model):
     user: Mapped["User"] = relationship(back_populates="categories")
     transactions: Mapped[list["Transaction"]] = relationship(back_populates="category")
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "type": self.type,
+            "user_id": self.user_id
+        }
+
     def __repr__(self):
         return f'<Category {self.name} ({self.type})>'
 
@@ -80,6 +88,18 @@ class Transaction(db.Model):
 
     user: Mapped["User"] = relationship(back_populates="transactions")
     category: Mapped["Category"] = relationship(back_populates="transactions")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "description": self.description,
+            "amount": self.amount,
+            "type": self.type,
+            "date": self.date,
+            "payment_method": self.payment_method,
+            "category_id": self.category_id
+        }
+
 
     def __repr__(self):
         return f'<Transaction {self.description} $ {self.amount}>'

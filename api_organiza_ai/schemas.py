@@ -36,7 +36,7 @@ class CategorySchema(ModelClass):
 
 class TransactionSchema(ModelClass):
     description: str = Field(min_length=3)
-    amount: Decimal
+    amount: Decimal = Field(gt=0)
     type: TransactionType
     date: date
     payment_method: PaymentMethod
