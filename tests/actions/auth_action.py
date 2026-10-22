@@ -1,3 +1,5 @@
+
+
 class AuthAction:
     def __init__(self, client):
         self.client = client
@@ -21,6 +23,20 @@ class AuthAction:
 
     def post(self, url, body):
         return self.client.post(
+            url,
+            json=body,
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+
+    def put(self, url, body):
+        return self.client.put(
+            url,
+            json=body,
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+
+    def delete(self, url, body):
+        return self.client.delete(
             url,
             json=body,
             headers={'Authorization': f'Bearer {self.token}'}

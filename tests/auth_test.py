@@ -8,8 +8,8 @@ def test_rejeita_nome_com_menos_de_3_caracteres(client):
         '/auth/register',
         json=body
     )
-    validation_data = response.json['validation_error']['body_params'][0]
     assert response.status_code == 400
+    validation_data = response.json['validation_error']['body_params'][0]
     assert validation_data['msg'] == 'String should have at least 3 characters'
 
 def test_rejeita_cpf_com_menos_de_11_caracteres(client):
@@ -20,8 +20,8 @@ def test_rejeita_cpf_com_menos_de_11_caracteres(client):
         '/auth/register',
         json=body
     )
-    validation_data = response.json['validation_error']['body_params'][1]
     assert response.status_code == 400
+    validation_data = response.json['validation_error']['body_params'][1]
     assert validation_data['msg'] == 'String should have at least 11 characters'
 
 def test_rejeita_cpf_com_mais_de_14_caractres(client):
@@ -32,8 +32,8 @@ def test_rejeita_cpf_com_mais_de_14_caractres(client):
         '/auth/register',
         json=body
     )
-    validation_data = response.json['validation_error']['body_params'][1]
     assert response.status_code == 400
+    validation_data = response.json['validation_error']['body_params'][1]
     assert validation_data['msg'] == 'String should have at most 14 characters'
 
 def test_rejeita_email_invalido(client):
@@ -44,8 +44,8 @@ def test_rejeita_email_invalido(client):
         '/auth/register',
         json=body
     )
-    validation_data = response.json['validation_error']['body_params'][2]
     assert response.status_code == 400
+    validation_data = response.json['validation_error']['body_params'][2]
     assert validation_data['msg'] == 'value is not a valid email address: An email address must have an @-sign.'
 
 def test_rejeita_telefone_com_menos_de_10_caracteres(client):
@@ -96,9 +96,9 @@ def test_registra_usuario_com_dados_validos(client):
         '/auth/register',
         json=body
     )
-    data = response.json
     assert response.status_code == 201
-    assert data['message'] == 'Usuário cadastrado com sucesso.'
+    data = response.json
+    assert data['message'] == 'Usuário cadastrado com sucesso'
     assert 'id' in response.json['data']
     assert data['data']['name'] == body['name']
     assert data['data']['cpf'] == body['cpf']
@@ -118,9 +118,9 @@ def test_rejeita_cadastro_de_cpf_e_email_ja_cadastrado(client):
         '/auth/register',
         json=body
     )
-    data = reponse.json
     assert reponse.status_code == 400
-    assert data['message'] == "CPF ou Email já cadastrado"
+    data = reponse.json
+    assert data['message'] == "CPF ou Email já cadastrados"
 
 
 def test_rejeita_login_sem_email_e_senha(client):
@@ -144,12 +144,35 @@ def test_valida_se_login_retorna_access_token(client):
         '/auth/login',
         json=body
     )
-    data = response.json
     assert response.status_code == 200
+    data = response.json
     assert 'access_token' in data
-    assert data['message'] == 'Login efetuado com sucesso.'
+    assert data['message'] == 'Login efetuado com sucesso'
 
-def test_deve_retornar_informacoes_do_usuario_logado(auth):
+def test_rejeita_login_com_credenciais_inválidas(client):
+    body = {
+        'email': 'usuarioteste@gmail.com',
+        'password': 'teste'
+    }
+    response = client.post(
+        '/auth/login',
+        json=body
+    )
+
+    data = response.json
+    assert response.status_code == 401
+    assert data['message'] == 'Email ou senha inválidos'
+
+def test_rota_me_rejeita_token_asuente(client):
+    response = client.get(
+        '/auth/me'
+    )
+    data = response.json
+    assert response.status_code == 401
+    assert data['msg'] == 'Missing Authorization Header'
+
+
+def test_rota_me_deve_retornar_informacoes_do_usuario_logado(auth):
     response = auth.get(
         url='/auth/me'
     )
@@ -160,4 +183,3 @@ def test_deve_retornar_informacoes_do_usuario_logado(auth):
     assert 'email' in data
     assert 'name' in data
     assert 'phone' in data
-
