@@ -157,16 +157,14 @@ def categories_index():
                 name: Salário
                 type: income
     """
+    
     user_id = UUID(get_jwt_identity())
 
     stmt = select(Category).where(Category.user_id == user_id)
     categories = db.session.execute(stmt).scalars()
 
     return jsonify({
-        "data": [
-            category.to_dict()
-            for category in categories
-        ]
+        'data': [ category.to_dict() for category in categories ]
     }), 200
 
 @bp.put('/<uuid:category_id>')

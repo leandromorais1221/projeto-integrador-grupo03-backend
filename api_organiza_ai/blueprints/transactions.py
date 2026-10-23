@@ -11,13 +11,11 @@ from ..extensions import db
 
 bp = Blueprint('transactions', __name__, url_prefix='/transactions')
 
-
-@bp.post("/")
+@bp.post('')
 @jwt_required()
 @validate()
 def transactions_create(body: TransactionSchema):
-    """
-    Cadastra uma nova transação.
+    """ Cadastra uma nova transação.
 
     ---
     tags:
@@ -57,14 +55,14 @@ def transactions_create(body: TransactionSchema):
             description:
               type: string
               minLength: 3
-              description: Descrição da transação.
+              description: Descrição da transação, com no mínimo 3 caracteres.
               example: Compra no supermercado
 
             amount:
               type: number
-              format: double
-              exclusiveMinimum: true
+              format: decimal
               minimum: 0
+              exclusiveMinimum: true
               description: Valor da transação, maior que zero.
               example: 150.75
 
@@ -104,6 +102,7 @@ def transactions_create(body: TransactionSchema):
         description: Transação cadastrada com sucesso.
         examples:
           application/json:
+            message: Transação cadastrada com sucesso
             data:
               id: 550e8400-e29b-41d4-a716-446655440001
               description: Compra no supermercado
@@ -111,33 +110,29 @@ def transactions_create(body: TransactionSchema):
               type: expense
               date: "2026-10-20"
               payment_method: pix
-              user_id: 550e8400-e29b-41d4-a716-446655440002
               category_id: 550e8400-e29b-41d4-a716-446655440000
 
       404:
         description: Categoria não encontrada ou não pertencente ao usuário.
         examples:
           application/json:
-            message: Categoria não encontrada.
+            message: Categoria não encontrada
 
       500:
         description: Erro interno ao cadastrar a transação.
         examples:
           application/json:
-            message: Erro ao cadastrar transação.
+            message: Erro consulte o suporte técnico
     """
+    
     user_id = UUID(get_jwt_identity())
 
-    stmt = select(Category).where(
-        (Category.user_id == user_id)
-        & (Category.id == body.category_id)
-    )
-
+    stmt = select(Category).where((Category.user_id == user_id) & (Category.id == body.category_id))
     category_exists = db.session.execute(stmt).scalar()
 
     if not category_exists:
         return jsonify({
-            "message": "Categoria não encontrada."
+            'message': 'Categoria não encontrada'
         }), 404
 
     try:
@@ -154,23 +149,22 @@ def transactions_create(body: TransactionSchema):
         db.session.add(transaction)
         db.session.commit()
 
-        return jsonify({
-            "data": transaction.to_dict()
-        }), 201
-
     except SQLAlchemyError:
         db.session.rollback()
 
         return jsonify({
-            "message": "Erro ao cadastrar transação."
+            'message': 'Erro consulte o suporte técnico'
         }), 500
-    
 
-@bp.get("/")
+    return jsonify({
+        'message': 'Transação cadastrada com sucesso',
+        'data': transaction.to_dict()
+    }), 201
+
+@bp.get('')
 @jwt_required()
 def transactions_index():
-    """
-    Lista as transações do usuário autenticado.
+    """ Lista as transações do usuário autenticado.
 
     ---
     tags:
@@ -210,28 +204,21 @@ def transactions_index():
                 user_id: 550e8400-e29b-41d4-a716-446655440002
                 category_id: 550e8400-e29b-41d4-a716-446655440004
     """
+    
     user_id = UUID(get_jwt_identity())
 
-    stmt = select(Transaction).where(
-        Transaction.user_id == user_id
-    )
-
+    stmt = select(Transaction).where(Transaction.user_id == user_id)
     transactions = db.session.execute(stmt).scalars()
 
     return jsonify({
-        "data": [
-            transaction.to_dict()
-            for transaction in transactions
-        ]
+        'data': [ transaction.to_dict() for transaction in transactions ]
     }), 200
 
-
-@bp.put("/<uuid:transaction_id>")
+@bp.put('/<uuid:transaction_id>')
 @jwt_required()
 @validate()
 def transactions_update(transaction_id: UUID, body: TransactionSchema):
-    """
-    Atualiza uma transação existente.
+    """ Atualiza uma transação existente.
 
     ---
     tags:
@@ -258,7 +245,7 @@ def transactions_update(transaction_id: UUID, body: TransactionSchema):
         type: string
         format: uuid
         required: true
-        description: Identificador UUID da transação.
+        description: Identificador UUID da transação que será atualizada.
         example: 550e8400-e29b-41d4-a716-446655440001
 
       - in: body
@@ -278,12 +265,12 @@ def transactions_update(transaction_id: UUID, body: TransactionSchema):
             description:
               type: string
               minLength: 3
-              description: Descrição da transação.
+              description: Descrição da transação, com no mínimo 3 caracteres.
               example: Compra no supermercado
 
             amount:
               type: number
-              format: double
+              format: decimal
               minimum: 0
               exclusiveMinimum: true
               description: Valor da transação, maior que zero.
@@ -325,6 +312,7 @@ def transactions_update(transaction_id: UUID, body: TransactionSchema):
         description: Transação atualizada com sucesso.
         examples:
           application/json:
+            message: Transação atualizada com sucesso
             data:
               id: 550e8400-e29b-41d4-a716-446655440001
               description: Compra no supermercado
@@ -332,53 +320,46 @@ def transactions_update(transaction_id: UUID, body: TransactionSchema):
               type: expense
               date: "2026-10-20"
               payment_method: pix
-              user_id: 550e8400-e29b-41d4-a716-446655440002
               category_id: 550e8400-e29b-41d4-a716-446655440000
 
       404:
-        description: Categoria não encontrada ou não pertencente ao usuário.
+        description: Transação ou categoria não encontrada ou não pertencente ao usuário.
         examples:
           application/json:
-            message: Categoria não encontrada.
+            message: Transação não encontrada
 
       500:
         description: Erro interno ao atualizar a transação.
         examples:
           application/json:
-            message: Erro ao cadastrar transação.
+            message: Erro consulte o suporte técnico
     """
+    
     user_id = UUID(get_jwt_identity())
 
-    category_stmt = select(Category).where(
-        (Category.user_id == user_id)
-        & (Category.id == body.category_id)
-    )
-
-    category_exists = db.session.execute(
-        category_stmt
-    ).scalar()
+    category_stmt = select(Category).where((Category.user_id == user_id) & (Category.id == body.category_id))
+    category_exists = db.session.execute(category_stmt).scalar()
 
     if not category_exists:
         return jsonify({
-            "message": "Categoria não encontrada."
+            'message': 'Categoria não encontrada'
         }), 404
 
-    transaction_stmt = select(Transaction).where(
-        (Transaction.user_id == user_id)
-        & (Transaction.id == transaction_id)
-    )
+    transaction_stmt = select(Transaction).where((Transaction.user_id == user_id) & (Transaction.id == transaction_id))
+    transaction_exists = db.session.execute(transaction_stmt).scalar()
 
-    transaction = db.session.execute(
-        transaction_stmt
-    ).scalar()
+    if not transaction_exists:
+        return jsonify({
+            'message': 'Transação não encontrada'
+        }), 404
 
     try:
-        transaction.description = body.description
-        transaction.amount = body.amount
-        transaction.type = body.type
-        transaction.date = body.date
-        transaction.payment_method = body.payment_method
-        transaction.category_id = body.category_id
+        transaction_exists.description = body.description
+        transaction_exists.amount = body.amount
+        transaction_exists.type = body.type
+        transaction_exists.date = body.date
+        transaction_exists.payment_method = body.payment_method
+        transaction_exists.category_id = body.category_id
 
         db.session.commit()
 
@@ -386,18 +367,18 @@ def transactions_update(transaction_id: UUID, body: TransactionSchema):
         db.session.rollback()
 
         return jsonify({
-            "message": "Erro ao cadastrar transação."
+            'message': 'Erro consulte o suporte técnico'
         }), 500
 
     return jsonify({
-        "data": transaction.to_dict()
+        'message': 'Transação atualizada com sucesso',
+        'data': transaction_exists.to_dict()
     }), 200
 
-@bp.delete("/<uuid:transaction_id>")
+@bp.delete('/<uuid:transaction_id>')
 @jwt_required()
 def transactions_delete(transaction_id: UUID):
-    """
-    Deleta uma transação existente.
+    """ Deleta uma transação existente.
 
     ---
     tags:
@@ -422,7 +403,7 @@ def transactions_delete(transaction_id: UUID):
         type: string
         format: uuid
         required: true
-        description: Identificador UUID da transação.
+        description: Identificador UUID da transação que será deletada.
         example: 550e8400-e29b-41d4-a716-446655440001
 
     responses:
@@ -430,32 +411,29 @@ def transactions_delete(transaction_id: UUID):
         description: Transação deletada com sucesso.
         examples:
           application/json:
-            message: Transação deletada com sucesso.
+            message: Transação deletada com sucesso
 
       404:
         description: Transação não encontrada ou não pertencente ao usuário.
         examples:
           application/json:
-            message: Transação não encontrada.
+            message: Transação não encontrada
 
       500:
         description: Erro interno ao deletar a transação.
         examples:
           application/json:
-            message: Erro ao deletar transação.
+            message: Erro consulte o suporte técnico
     """
+        
     user_id = UUID(get_jwt_identity())
 
-    stmt = select(Transaction).where(
-        (Transaction.user_id == user_id)
-        & (Transaction.id == transaction_id)
-    )
-
+    stmt = select(Transaction).where((Transaction.user_id == user_id) & (Transaction.id == transaction_id))
     transaction = db.session.execute(stmt).scalar()
 
     if not transaction:
         return jsonify({
-            "message": "Transação não encontrada."
+            'message': 'Transação não encontrada'
         }), 404
 
     try:
@@ -466,11 +444,11 @@ def transactions_delete(transaction_id: UUID):
         db.session.rollback()
 
         return jsonify({
-            "message": "Erro ao deletar transação."
+            'message': 'Erro consulte o suporte técnico'
         }), 500
 
     return jsonify({
-        "message": "Transação deletada com sucesso."
+        'message': 'Transação deletada com sucesso'
     }), 200
 
     
