@@ -11,12 +11,11 @@ from sqlalchemy import select
 
 bp = Blueprint('categories', __name__, url_prefix='/categories')
 
-@bp.post("/")
+@bp.post('')
 @jwt_required()
 @validate()
 def categories_create(body: CategorySchema):
-    """
-    Cria uma nova categoria de transação.
+    """ Cria uma nova categoria de transação.
 
     ---
     tags:
@@ -24,8 +23,9 @@ def categories_create(body: CategorySchema):
 
     summary: Criar categoria
     description: >
-      Cria uma categoria para o usuário autenticado.
+      Cria uma nova categoria para o usuário autenticado.
       O identificador do usuário é obtido através do token JWT.
+      A categoria pode ser do tipo receita (income) ou despesa (expense).
 
     security:
       - Bearer: []
@@ -40,7 +40,7 @@ def categories_create(body: CategorySchema):
       - in: body
         name: body
         required: true
-        description: Dados da categoria.
+        description: Dados necessários para cadastrar a categoria.
         schema:
           type: object
           required:
@@ -50,33 +50,36 @@ def categories_create(body: CategorySchema):
             name:
               type: string
               minLength: 3
-              description: Nome da categoria.
+              description: Nome da categoria, com no mínimo 3 caracteres.
               example: Alimentação
+
             type:
               type: string
               enum:
                 - income
                 - expense
-              description: Tipo da transação.
+              description: Tipo da categoria.
               example: expense
 
     responses:
       201:
-        description: Categoria criada com sucesso.
+        description: Categoria cadastrada com sucesso.
         examples:
           application/json:
+            message: Categoria cadastrada com sucesso
             data:
               id: b1b261ab-b079-4e14-8d7c-c4a57a115119
               name: Alimentação
               type: expense
-              user_id: "b1b261ab-b07e-4e14-8d7c-c4a57a115119"
+              user_id: b1b261ab-b07e-4e14-8d7c-c4a57a115119
 
       500:
-        description: Erro interno ao criar a categoria.
+        description: Erro interno ao cadastrar a categoria.
         examples:
           application/json:
-            error: Erro ao cadastrar categoria.
+            message: Erro consulte o suporte técnico
     """
+
     user_id = UUID(get_jwt_identity())
 
     try:
@@ -93,19 +96,18 @@ def categories_create(body: CategorySchema):
         db.session.rollback()
 
         return jsonify({
-            "message": "Erro ao cadastrar categoria."
+            'message': 'Erro consulte o suporte técnico'
         }), 500
 
     return jsonify({
-        "data": category.to_dict()
+        'message': 'Categoria cadastrada com sucesso',
+        'data': category.to_dict()
     }), 201
 
-
-@bp.get("/")
+@bp.get('')
 @jwt_required()
 def categories_index():
-    """
-    Lista as categorias do usuário autenticado.
+    """ Lista as categorias do usuário autenticado.
 
     ---
     tags:
@@ -115,6 +117,8 @@ def categories_index():
     description: >
       Retorna todas as categorias pertencentes ao usuário autenticado.
       O identificador do usuário é obtido através do token JWT.
+      A resposta contém uma lista de categorias com seus respectivos
+      identificadores, nomes e tipos.
 
     security:
       - Bearer: []
@@ -131,19 +135,13 @@ def categories_index():
               - id: e20002ee-8ada-4ab9-ae82-2ad28cede321
                 name: Alimentação
                 type: expense
-                user_id: "d16e817c-1bad-4151-90d6-d876fcd9f377"
               - id: 7600d652-1be4-4974-bf5e-856f700f8103
                 name: Salário
                 type: income
-                user_id: "d16e817c-1bad-4151-90d6-d876fcd9f377"
-
     """
     user_id = UUID(get_jwt_identity())
 
-    stmt = select(Category).where(
-        Category.user_id == user_id
-    )
-
+    stmt = select(Category).where(Category.user_id == user_id)
     categories = db.session.execute(stmt).scalars()
 
     return jsonify({
@@ -153,12 +151,11 @@ def categories_index():
         ]
     }), 200
 
-@bp.put("/<uuid:category_id>")
+@bp.put('/<uuid:category_id>')
 @jwt_required()
 @validate()
 def categories_update(category_id: UUID, body: CategorySchema):
-    """
-    Atualiza uma categoria existente.
+    """ Atualiza uma categoria existente.
 
     ---
     tags:
@@ -186,7 +183,7 @@ def categories_update(category_id: UUID, body: CategorySchema):
         type: string
         format: uuid
         required: true
-        description: Identificador UUID da categoria.
+        description: Identificador UUID da categoria que será atualizada.
         example: 550e8400-e29b-41d4-a716-446655440000
 
       - in: body
@@ -202,15 +199,16 @@ def categories_update(category_id: UUID, body: CategorySchema):
             name:
               type: string
               minLength: 3
-              description: Novo nome da categoria.
-              example: Alimentação
+              description: Novo nome da categoria, com no mínimo 3 caracteres.
+              example: Salário
+
             type:
               type: string
               enum:
                 - income
                 - expense
-              description: Novo tipo da transação.
-              example: expense
+              description: Novo tipo da categoria.
+              example: income
 
     responses:
       200:
@@ -219,60 +217,52 @@ def categories_update(category_id: UUID, body: CategorySchema):
           application/json:
             data:
               id: 550e8400-e29b-41d4-a716-446655440000
-              name: Alimentação
-              type: expense
-              user_id: "123"
+              name: Salário
+              type: income
 
       404:
-        description: Categoria inexistente ou não pertencente ao usuário.
+        description: Categoria não encontrada ou não pertencente ao usuário.
         examples:
           application/json:
-            message: Categoria Inexistente.
+            message: Categoria não encontrada
 
       500:
         description: Erro interno ao atualizar a categoria.
         examples:
           application/json:
-            message: Erro ao atualizar categoria.
+            message: Erro consulte o suporte técnico
     """
+
     user_id = UUID(get_jwt_identity())
 
-    stmt = select(Category).where(
-        (Category.id == category_id)
-        & (Category.user_id == user_id)
-    )
-
+    stmt = select(Category).where((Category.id == category_id) & (Category.user_id == user_id))
     category = db.session.execute(stmt).scalar()
 
     if not category:
         return jsonify({
-            "message": "Categoria não encontrada."
+            'message': 'Categoria não encontrada'
         }), 404
 
     try:
-
         category.name = body.name
         category.type = body.type
-
         db.session.commit()
 
     except SQLAlchemyError:
         db.session.rollback()
 
         return jsonify({
-            "message": "Erro ao atualizar categoria."
+            'message': 'Erro consulte o suporte técnico'
         }), 500
 
     return jsonify({
-        "data": category.to_dict()
+        'data': category.to_dict()
     }), 200
 
-
-@bp.delete("/<uuid:category_id>")
+@bp.delete('/<uuid:category_id>')
 @jwt_required()
 def categories_delete(category_id: UUID):
-    """
-    Deleta uma categoria existente.
+    """ Deleta uma categoria existente.
 
     ---
     tags:
@@ -297,7 +287,7 @@ def categories_delete(category_id: UUID):
         type: string
         format: uuid
         required: true
-        description: Identificador UUID da categoria.
+        description: Identificador UUID da categoria que será deletada.
         example: 550e8400-e29b-41d4-a716-446655440000
 
     responses:
@@ -305,32 +295,29 @@ def categories_delete(category_id: UUID):
         description: Categoria deletada com sucesso.
         examples:
           application/json:
-            message: Categoria deletada com sucesso.
+            message: Categoria deletada com sucesso
 
       404:
         description: Categoria não encontrada ou não pertencente ao usuário.
         examples:
           application/json:
-            message: Categoria não encontrada.
+            message: Categoria não encontrada
 
       500:
         description: Erro interno ao deletar a categoria.
         examples:
           application/json:
-            message: Erro ao deletar categoria.
+            message: Erro consulte o suporte técnico
     """
+
     user_id = UUID(get_jwt_identity())
 
-    stmt = select(Category).where(
-        (Category.id == category_id)
-        & (Category.user_id == user_id)
-    )
-
+    stmt = select(Category).where((Category.id == category_id) & (Category.user_id == user_id))
     category = db.session.execute(stmt).scalar()
 
     if not category:
         return jsonify({
-            "message": "Categoria não encontrada."
+            'message': 'Categoria não encontrada'
         }), 404
 
     try:
@@ -341,11 +328,11 @@ def categories_delete(category_id: UUID):
         db.session.rollback()
 
         return jsonify({
-            "message": "Erro ao deletar categoria."
+            'message': 'Erro consulte o suporte técnico'
         }), 500
 
     return jsonify({
-        "message": "Categoria deletada com sucesso."
+        'message': 'Categoria deletada com sucesso'
     }), 200
     
 

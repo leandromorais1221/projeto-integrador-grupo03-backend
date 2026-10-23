@@ -66,7 +66,6 @@ class Category(db.Model):
             "id": self.id,
             "name": self.name,
             "type": self.type,
-            "user_id": self.user_id
         }
 
     def __repr__(self):
