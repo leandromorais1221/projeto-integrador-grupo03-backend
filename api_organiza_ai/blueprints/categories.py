@@ -72,6 +72,12 @@ def categories_create(body: CategorySchema):
               name: Alimentação
               type: expense
               user_id: b1b261ab-b07e-4e14-8d7c-c4a57a115119
+      
+      400:
+        description: Categoria já cadastrada para este usuário ou dados inválidos.
+        examples:
+          application/json:
+            message: Categoria já cadastrada
 
       500:
         description: Erro interno ao cadastrar a categoria.
@@ -82,6 +88,18 @@ def categories_create(body: CategorySchema):
 
     user_id = UUID(get_jwt_identity())
 
+    stmt = select(Category).where(
+        (Category.name == body.name) & 
+        (Category.type == body.type) & 
+        (Category.user_id == user_id)
+    )
+    category_exists = db.session.execute(stmt).scalar()
+
+    if category_exists:
+        return jsonify({
+            'message': 'Categoria já cadastrada'
+        }), 400
+    
     try:
         category = Category(
             name=body.name,
