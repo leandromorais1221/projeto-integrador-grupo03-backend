@@ -94,7 +94,7 @@ class Transaction(db.Model):
             "description": self.description,
             "amount": self.amount,
             "type": self.type,
-            "date": self.date,
+            "date": self.date.strftime('%Y-%m-%d'),
             "payment_method": self.payment_method,
             "category_id": self.category_id
         }
