@@ -73,7 +73,7 @@ def categories_create(body: CategorySchema):
               type: expense
               user_id: b1b261ab-b07e-4e14-8d7c-c4a57a115119
       
-      400:
+      409:
         description: Categoria já cadastrada para este usuário ou dados inválidos.
         examples:
           application/json:
