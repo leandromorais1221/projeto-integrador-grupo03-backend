@@ -193,7 +193,6 @@ def transactions_index():
                 type: expense
                 date: "2026-10-20"
                 payment_method: pix
-                user_id: 550e8400-e29b-41d4-a716-446655440002
                 category_id: 550e8400-e29b-41d4-a716-446655440000
               - id: 550e8400-e29b-41d4-a716-446655440003
                 description: Salário
@@ -201,7 +200,6 @@ def transactions_index():
                 type: income
                 date: "2026-10-05"
                 payment_method: credito
-                user_id: 550e8400-e29b-41d4-a716-446655440002
                 category_id: 550e8400-e29b-41d4-a716-446655440004
     """
     
