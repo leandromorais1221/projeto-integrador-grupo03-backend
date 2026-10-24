@@ -173,10 +173,10 @@ def transactions_index():
     summary: Listar transações
     description: >
       Retorna as transações pertencentes ao usuário autenticado,
-      permitindo aplicar filtros por descrição, período, categoria
-      e tipo de transação. Os resultados são ordenados pela data
-      em ordem decrescente. O identificador do usuário é obtido
-      através do token JWT.
+      permitindo aplicar filtros por descrição, período, categoria,
+      tipo de transação e faixa de valores. Os resultados são
+      ordenados pela data em ordem decrescente. O identificador
+      do usuário é obtido através do token JWT.
 
     security:
       - Bearer: []
@@ -197,7 +197,7 @@ def transactions_index():
         type: string
         format: date
         required: false
-        description: Data inicial do período no formato YYYY-MM-DD. Deve ser informada junto com endDate para aplicar o filtro por período.
+        description: Data inicial do período no formato YYYY-MM-DD.
         example: "2026-10-01"
 
       - in: query
@@ -205,7 +205,7 @@ def transactions_index():
         type: string
         format: date
         required: false
-        description: Data final do período no formato YYYY-MM-DD. Deve ser informada junto com startDate para aplicar o filtro por período.
+        description: Data final do período no formato YYYY-MM-DD.
         example: "2026-10-31"
 
       - in: query
@@ -228,6 +228,22 @@ def transactions_index():
         required: false
         description: Filtra as transações por um ou mais tipos. Informe o parâmetro repetidamente para selecionar vários tipos.
         example: expense
+
+      - in: query
+        name: minAmount
+        type: number
+        format: double
+        required: false
+        description: Valor mínimo da transação. Retorna transações com valor maior ou igual ao informado.
+        example: 50.00
+
+      - in: query
+        name: maxAmount
+        type: number
+        format: double
+        required: false
+        description: Valor máximo da transação. Retorna transações com valor menor ou igual ao informado.
+        example: 500.00
 
     responses:
       200:
