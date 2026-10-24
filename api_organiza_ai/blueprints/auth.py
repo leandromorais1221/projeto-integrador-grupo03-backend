@@ -288,6 +288,126 @@ def auth_me():
         'data': user.to_dict()
     }), 200
 
+
+@bp.put('/me')
+@jwt_required()
+@validate()
+def auth_update(body: UserSchema):
+    """ Atualiza os dados do usuário autenticado.
+
+    ---
+    tags:
+      - Autenticação
+    summary: Atualizar usuário
+    description: >
+      Atualiza os dados pessoais do usuário autenticado, incluindo nome,
+      CPF, e-mail, telefone e senha. O identificador do usuário é obtido
+      através do token JWT.
+      A senha deve ser armazenada utilizando hash.
+    security:
+      - Bearer: []
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: Dados necessários para atualizar o usuário.
+        schema:
+          type: object
+          required:
+            - name
+            - cpf
+            - email
+            - phone
+            - password
+          properties:
+            name:
+              type: string
+              minLength: 3
+              example: "João da Silva"
+            cpf:
+              type: string
+              minLength: 11
+              maxLength: 14
+              example: "123.456.789-00"
+            email:
+              type: string
+              format: email
+              example: "joao@email.com"
+            phone:
+              type: string
+              minLength: 10
+              maxLength: 15
+              example: "(11) 98765-4321"
+            password:
+              type: string
+              minLength: 6
+              format: password
+              example: "123456"
+    responses:
+      200:
+        description: Usuário atualizado com sucesso.
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Usuário atualizado com sucesso"
+            data:
+              type: object
+              description: Dados do usuário atualizado.
+              properties:
+                id:
+                  type: string
+                  example: "39272879-083d-4a12-961d-7b97a7c29b28"
+                name:
+                  type: string
+                  example: "João da Silva"
+                cpf:
+                  type: string
+                  example: "123.456.789-00"
+                email:
+                  type: string
+                  example: "joao@email.com"
+                phone:
+                  type: string
+                  example: "(11) 98765-4321"
+      500:
+        description: Erro interno ao atualizar os dados do usuário.
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Erro consulte o suporte técnico"
+    """
+    current_user_id = UUID(get_jwt_identity())
+
+    stmt = select(User).where(User.id == current_user_id)
+    user = db.session.execute(stmt).scalar()
+
+    try:
+        user.name = body.name
+        user.cpf = body.cpf
+        user.email = body.email
+        user.phone = body.phone
+        user.password = generate_password_hash(body.password)
+        db.session.commit()
+
+    except SQLAlchemyError:
+        return jsonify({
+          'message:': 'Erro consulte o suporte técnico'
+        }), 500
+
+    return jsonify({
+        'message': 'Usuário atualizado com sucesso',
+        'data': user.to_dict()
+    }), 200
+
+
 @bp.delete('/me')
 @jwt_required()
 def auth_delete():
