@@ -98,7 +98,7 @@ def categories_create(body: CategorySchema):
     if category_exists:
         return jsonify({
             'message': 'Categoria já cadastrada'
-        }), 400
+        }), 409
     
     try:
         category = Category(
