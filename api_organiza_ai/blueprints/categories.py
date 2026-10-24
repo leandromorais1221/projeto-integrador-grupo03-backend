@@ -176,23 +176,17 @@ def categories_update(category_id: UUID, body: CategorySchema):
     ---
     tags:
       - Categories
-
-    summary: Atualizar categoria
+    summary: Atualização de categoria
     description: >
       Atualiza o nome e o tipo de uma categoria pertencente ao usuário
-      autenticado. O identificador do usuário é obtido através do token JWT.
-      Somente categorias pertencentes ao usuário autenticado podem ser
+      autenticado. Somente categorias do usuário autenticado podem ser
       atualizadas.
-
     security:
       - Bearer: []
-
     consumes:
       - application/json
-
     produces:
       - application/json
-
     parameters:
       - in: path
         name: category_id
@@ -200,12 +194,11 @@ def categories_update(category_id: UUID, body: CategorySchema):
         format: uuid
         required: true
         description: Identificador UUID da categoria que será atualizada.
-        example: 550e8400-e29b-41d4-a716-446655440000
-
+        example: "550e8400-e29b-41d4-a716-446655440000"
       - in: body
         name: body
         required: true
-        description: Dados atualizados da categoria.
+        description: Dados necessários para atualizar a categoria.
         schema:
           type: object
           required:
@@ -215,38 +208,51 @@ def categories_update(category_id: UUID, body: CategorySchema):
             name:
               type: string
               minLength: 3
-              description: Novo nome da categoria, com no mínimo 3 caracteres.
-              example: Salário
-
+              example: "Salário"
             type:
               type: string
               enum:
                 - income
                 - expense
-              description: Novo tipo da categoria.
-              example: income
-
+              example: "income"
     responses:
       200:
         description: Categoria atualizada com sucesso.
-        examples:
-          application/json:
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Categoria atualizada com sucesso"
             data:
-              id: 550e8400-e29b-41d4-a716-446655440000
-              name: Salário
-              type: income
-
+              type: object
+              description: Dados da categoria atualizada.
+              properties:
+                id:
+                  type: string
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                name:
+                  type: string
+                  example: "Salário"
+                type:
+                  type: string
+                  example: "income"
       404:
         description: Categoria não encontrada ou não pertencente ao usuário.
-        examples:
-          application/json:
-            message: Categoria não encontrada
-
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Categoria não encontrada"
       500:
         description: Erro interno ao atualizar a categoria.
-        examples:
-          application/json:
-            message: Erro consulte o suporte técnico
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Erro consulte o suporte técnico"
     """
 
     user_id = UUID(get_jwt_identity())
@@ -272,6 +278,7 @@ def categories_update(category_id: UUID, body: CategorySchema):
         }), 500
 
     return jsonify({
+        'message': 'Categoria atualizada com sucesso',
         'data': category.to_dict()
     }), 200
 
