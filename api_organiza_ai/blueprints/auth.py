@@ -287,3 +287,56 @@ def auth_me():
     return jsonify({
         'data': user.to_dict()
     }), 200
+
+@bp.delete('/me')
+@jwt_required()
+def auth_delete():
+    """ Deleta a conta do usuário autenticado.
+
+    ---
+    tags:
+      - Autenticação
+
+    summary: Deletar conta
+    description: >
+      Exclui permanentemente a conta do usuário autenticado.
+      O identificador do usuário é obtido através do token JWT.
+
+    security:
+      - Bearer: []
+
+    produces:
+      - application/json
+
+    responses:
+      200:
+        description: Conta deletada com sucesso.
+        examples:
+          application/json:
+            message: Conta deletada com sucesso
+
+      500:
+        description: Erro interno ao deletar a conta.
+        examples:
+          application/json:
+            message: Erro consulte o suporte técnico
+    """
+
+    current_user_id = UUID(get_jwt_identity())
+    stmt = select(User).where(User.id == current_user_id)
+    user = db.session.execute(stmt).scalar()
+
+    try:
+      db.session.delete(user)
+      db.session.commit()
+
+    except SQLAlchemyError: 
+      return jsonify({
+          'message': 'Erro consulte o suporte técnico'
+      }), 500
+
+    return jsonify({
+       'message': 'Conta deletada com sucesso'
+    }), 200
+        
+    
