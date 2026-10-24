@@ -19,7 +19,7 @@ def auth_register(body: UserSchema):
 
     ---
     tags:
-      - Autenticação
+      - Usuário
     summary: Cadastro de usuário
     description: >
       Cria uma nova conta de usuário. O CPF e o e-mail devem ser únicos.
@@ -229,7 +229,7 @@ def auth_me():
 
     ---
     tags:
-      - Autenticação
+      - Usuário
     summary: Consultar usuário autenticado
     description: >
       Obtém a identidade do usuário por meio do token JWT enviado
@@ -297,7 +297,7 @@ def auth_update(body: UserSchema):
 
     ---
     tags:
-      - Autenticação
+      - Usuário
     summary: Atualizar usuário
     description: >
       Atualiza os dados pessoais do usuário autenticado, incluindo nome,
@@ -346,7 +346,7 @@ def auth_update(body: UserSchema):
               type: string
               minLength: 6
               format: password
-              example: "123456"
+              example: "78910"
     responses:
       200:
         description: Usuário atualizado com sucesso.
@@ -384,6 +384,7 @@ def auth_update(body: UserSchema):
               type: string
               example: "Erro consulte o suporte técnico"
     """
+    
     current_user_id = UUID(get_jwt_identity())
 
     stmt = select(User).where(User.id == current_user_id)
@@ -415,7 +416,7 @@ def auth_delete():
 
     ---
     tags:
-      - Autenticação
+      - Usuário
 
     summary: Deletar conta
     description: >
