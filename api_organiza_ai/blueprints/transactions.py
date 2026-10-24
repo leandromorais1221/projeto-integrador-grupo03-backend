@@ -258,20 +258,31 @@ def transactions_index():
     end_date_filter = request.args.get('endDate', None)
     category_id_filter = request.args.get('categoryId', None)
     type_filter = request.args.getlist('type', None)
+    min_amount_filter = request.args.get('minAmount', None)
+    max_amount_filter = request.args.get('maxAmount', None)
 
     stmt = select(Transaction).where(Transaction.user_id == user_id)
 
     if search_filter:
       stmt = stmt.where(Transaction.description.ilike(f'{search_filter}%'))
 
-    if start_date_filter and end_date_filter:
-      stmt = stmt.where(Transaction.date.between(start_date_filter, end_date_filter))
+    if start_date_filter:
+      stmt = stmt.where(Transaction.date >= start_date_filter)
+
+    if end_date_filter:
+        stmt = stmt.where(Transaction.date <= end_date_filter)
 
     if category_id_filter:
         stmt = stmt.where(Transaction.category_id == UUID(category_id_filter))
 
     if type_filter:
         stmt = stmt.where(Transaction.type.in_(type_filter))
+
+    if min_amount_filter:
+        stmt = stmt.where(Transaction.amount >= min_amount_filter)
+
+    if max_amount_filter:
+        stmt = stmt.where(Transaction.amount <= max_amount_filter)
         
     stmt = stmt.order_by(Transaction.date.desc())
     transactions = db.session.execute(stmt).scalars()
