@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from uuid import UUID
 from sqlalchemy.exc import SQLAlchemyError
@@ -172,14 +172,62 @@ def transactions_index():
 
     summary: Listar transações
     description: >
-      Retorna todas as transações pertencentes ao usuário autenticado.
-      O identificador do usuário é obtido através do token JWT.
+      Retorna as transações pertencentes ao usuário autenticado,
+      permitindo aplicar filtros por descrição, período, categoria
+      e tipo de transação. Os resultados são ordenados pela data
+      em ordem decrescente. O identificador do usuário é obtido
+      através do token JWT.
 
     security:
       - Bearer: []
 
     produces:
       - application/json
+
+    parameters:
+      - in: query
+        name: search
+        type: string
+        required: false
+        description: Filtra as transações pela descrição, buscando textos que começam com o valor informado.
+        example: Compra
+
+      - in: query
+        name: startDate
+        type: string
+        format: date
+        required: false
+        description: Data inicial do período no formato YYYY-MM-DD. Deve ser informada junto com endDate para aplicar o filtro por período.
+        example: "2026-10-01"
+
+      - in: query
+        name: endDate
+        type: string
+        format: date
+        required: false
+        description: Data final do período no formato YYYY-MM-DD. Deve ser informada junto com startDate para aplicar o filtro por período.
+        example: "2026-10-31"
+
+      - in: query
+        name: categoryId
+        type: string
+        format: uuid
+        required: false
+        description: Filtra as transações pelo identificador UUID da categoria.
+        example: 550e8400-e29b-41d4-a716-446655440000
+
+      - in: query
+        name: type
+        type: array
+        items:
+          type: string
+          enum:
+            - income
+            - expense
+        collectionFormat: multi
+        required: false
+        description: Filtra as transações por um ou mais tipos. Informe o parâmetro repetidamente para selecionar vários tipos.
+        example: expense
 
     responses:
       200:
@@ -205,9 +253,29 @@ def transactions_index():
     
     user_id = UUID(get_jwt_identity())
 
-    stmt = select(Transaction).where(Transaction.user_id == user_id)
-    transactions = db.session.execute(stmt).scalars()
+    search_filter = request.args.get('search', None)
+    start_date_filter = request.args.get('startDate', None)
+    end_date_filter = request.args.get('endDate', None)
+    category_id_filter = request.args.get('categoryId', None)
+    type_filter = request.args.getlist('type', None)
 
+    stmt = select(Transaction).where(Transaction.user_id == user_id)
+
+    if search_filter:
+      stmt = stmt.where(Transaction.description.ilike(f'{search_filter}%'))
+
+    if start_date_filter and end_date_filter:
+      stmt = stmt.where(Transaction.date.between(start_date_filter, end_date_filter))
+
+    if category_id_filter:
+        stmt = stmt.where(Transaction.category_id == UUID(category_id_filter))
+
+    if type_filter:
+        stmt = stmt.where(Transaction.type.in_(type_filter))
+        
+    stmt = stmt.order_by(Transaction.date.desc())
+    transactions = db.session.execute(stmt).scalars()
+    
     return jsonify({
         'data': [ transaction.to_dict() for transaction in transactions ]
     }), 200
