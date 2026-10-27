@@ -3,21 +3,11 @@ from decimal import Decimal
 from datetime import date
 from uuid import UUID
 from enum import Enum
+from .enums import TransactionType, PaymentMethod
 
 
 class ModelClass(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
-
-class TransactionType(str, Enum):
-    INCOME = 'income'
-    EXPENSE = 'expense'
-
-class PaymentMethod(str, Enum):
-    CREDIT = 'credito'
-    DEBIT = 'debito'
-    PIX = 'pix'
-    CASH = 'dinheiro'
-    BOLETO = 'boleto'
 
 class UserSchema(ModelClass):
     name: str = Field(min_length=3)

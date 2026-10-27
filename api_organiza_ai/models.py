@@ -6,20 +6,8 @@ from sqlalchemy import String, DateTime, Date, Numeric, ForeignKey, Uuid
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.sql import func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from .extensions import db
-
-
-class TransactionType(str, enum.Enum):
-    INCOME = 'income'
-    EXPENSE = 'expense'
-
-class PaymentMethod(str, enum.Enum):
-    CREDIT = 'credito'
-    DEBIT = 'debito'
-    PIX = 'pix'
-    CASH = 'dinheiro'
-    BOLETO = 'boleto'
+from .enums import TransactionType, PaymentMethod
 
 
 class User(db.Model):
