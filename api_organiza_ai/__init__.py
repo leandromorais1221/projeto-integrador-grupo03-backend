@@ -1,5 +1,4 @@
 from flask import Flask
-from .blueprints import transactions
 from .models import *
 
 

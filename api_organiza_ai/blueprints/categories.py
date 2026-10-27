@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from ..models import Category
+from ..models import Category, Transaction
 from flask_pydantic import validate
 from ..schemas import CategorySchema
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -290,58 +290,75 @@ def categories_delete(category_id: UUID):
     ---
     tags:
       - Categories
-
-    summary: Deletar categoria
+    summary: Exclusão de categoria
     description: >
       Exclui uma categoria pertencente ao usuário autenticado.
-      O identificador do usuário é obtido através do token JWT.
-      Somente categorias pertencentes ao usuário autenticado podem ser
-      deletadas.
-
+      Somente categorias do usuário autenticado podem ser excluídas.
+      Categorias que possuem transações vinculadas não podem ser excluídas.
     security:
       - Bearer: []
-
     produces:
       - application/json
-
     parameters:
       - in: path
         name: category_id
         type: string
         format: uuid
         required: true
-        description: Identificador UUID da categoria que será deletada.
-        example: 550e8400-e29b-41d4-a716-446655440000
-
+        description: Identificador UUID da categoria que será excluída.
+        example: "550e8400-e29b-41d4-a716-446655440000"
     responses:
       200:
         description: Categoria deletada com sucesso.
-        examples:
-          application/json:
-            message: Categoria deletada com sucesso
-
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Categoria deletada com sucesso"
       404:
         description: Categoria não encontrada ou não pertencente ao usuário.
-        examples:
-          application/json:
-            message: Categoria não encontrada
-
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Categoria não encontrada"
+      409:
+        description: A categoria não pode ser excluída porque possui transações vinculadas.
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Erro a categoria não pode ser excluída pois há transações vinculadas"
       500:
         description: Erro interno ao deletar a categoria.
-        examples:
-          application/json:
-            message: Erro consulte o suporte técnico
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Erro consulte o suporte técnico"
     """
 
     user_id = UUID(get_jwt_identity())
 
-    stmt = select(Category).where((Category.id == category_id) & (Category.user_id == user_id))
+    stmt = select(Category).where(
+        (Category.id == category_id) & 
+        (Category.user_id == user_id)
+    )
     category = db.session.execute(stmt).scalar()
 
     if not category:
         return jsonify({
             'message': 'Categoria não encontrada'
         }), 404
+    
+    if category.transactions:
+        return jsonify({
+            'message': 'Erro a categoria não pode ser excluída pois há transações vinculadas'
+        }), 409
 
     try:
         db.session.delete(category)
