@@ -2,7 +2,6 @@ from pydantic import BaseModel, ConfigDict, Field , EmailStr
 from decimal import Decimal
 from datetime import date
 from uuid import UUID
-from enum import Enum
 from .enums import TransactionType, PaymentMethod
 
 
@@ -31,3 +30,12 @@ class TransactionSchema(ModelClass):
     date: date
     payment_method: PaymentMethod
     category_id: UUID
+
+class SummaryQuerySchema(ModelClass):
+    startDate: date | None = None
+    endDate: date | None = None
+
+class ByCategoryQuerySchema(ModelClass):
+    type: TransactionType
+    startDate: date | None = None
+    endDate: date | None = None
