@@ -73,17 +73,17 @@ def get_summary(query: SummaryQuerySchema):
     
     user_id = UUID(get_jwt_identity())
 
-    start_date = query.startDate
-    end_date = query.endDate
+    start_date_filter = query.startDate
+    end_date_filter = query.endDate
 
     try:
         stmt = select(Transaction.type, func.coalesce(func.sum(Transaction.amount), 0)).where(Transaction.user_id == user_id).group_by(Transaction.type)
 
-        if start_date:
-            stmt = stmt.where(Transaction.date >= start_date)
+        if start_date_filter:
+            stmt = stmt.where(Transaction.date >= start_date_filter)
 
-        if end_date:
-            stmt = stmt.where(Transaction.date <= end_date)
+        if end_date_filter:
+            stmt = stmt.where(Transaction.date <= end_date_filter)
             
         amounts = db.session.execute(stmt).all()
 
@@ -99,9 +99,11 @@ def get_summary(query: SummaryQuerySchema):
         balance = income - expense
 
         return jsonify({
-            "income": round(income, 2),
-            "expense": round(expense, 2),
-            "balance": round(balance, 2)
+            'data': {
+              'income': round(income, 2),
+              'expense': round(expense, 2),
+              'balance': round(balance, 2)
+            }
         }), 200
         
     except SQLAlchemyError:
@@ -183,46 +185,47 @@ def get_by_category(query: ByCategoryQuerySchema):
 
     user_id = UUID(get_jwt_identity())
     
-    type = query.type
-    start_date = query.startDate
-    end_date = query.endDate
+    type_filter = query.type
+    start_date_filter = query.startDate
+    end_date_filter = query.endDate
 
     try:
-
-        # Junta (JOIN) Transação e Categoria, filtra por tipo e usuário, e agrupa somando
-        stmt = select(Category.id, Category.name, func.coalesce(func.sum(Transaction.amount), 0).label('total_amount')
-        ).join(Transaction, Category.id == Transaction.category_id).where(
-            Category.user_id == user_id,
-            Transaction.type == type
+        stmt = select(Transaction.category_id, Category.name, func.coalesce(func.sum(Transaction.amount), 0).label('total_amount')).join(
+            Category, Transaction.category_id == Category.id
+        ).where(
+            Transaction.user_id == user_id,
+            Transaction.type == type_filter
         ).group_by(
-            Category.id, Category.name
+            Transaction.category_id
         ).order_by(
             func.sum(Transaction.amount).desc()
         )
 
-        if start_date:
-            stmt = stmt.where(Transaction.date >= start_date)
+        if start_date_filter:
+            stmt = stmt.where(Transaction.date >= start_date_filter)
 
-        if end_date:
-            stmt = stmt.where(Transaction.date <= end_date)
+        if end_date_filter:
+            stmt = stmt.where(Transaction.date <= end_date_filter)
 
         results = db.session.execute(stmt).all()
 
-        total_geral = sum([float(row.total_amount) for row in results])
+        total_all_amount = sum([float(row.total_amount) for row in results])
 
         data = []
         for row in results:
             cat_total = float(row.total_amount)
-            percentage = (cat_total / total_geral * 100) if total_geral > 0 else 0.0
+            percentage = (cat_total / total_all_amount * 100) if total_all_amount > 0 else 0.0
 
             data.append({
-                'category_id': str(row.id),
+                'category_id': str(row.category_id),
                 'category_name': row.name,
                 'total': round(cat_total, 2),
                 'percentage': round(percentage, 2)
             })
 
-        return jsonify(data), 200
+        return jsonify({
+            'data': data
+        }), 200
     
     except SQLAlchemyError:
         return jsonify({'message': 'Erro consulte o suporte técnico'}), 500
