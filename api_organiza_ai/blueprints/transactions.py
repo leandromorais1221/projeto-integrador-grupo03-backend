@@ -167,11 +167,11 @@ def transactions_create(body: TransactionSchema):
 @jwt_required()
 @validate_query(TranscationsQuerySchema)
 def transactions_index(query: TranscationsQuerySchema):
-    """ Lista as transações do usuário autenticado.
+    """Lista as transações do usuário autenticado.
 
     ---
     tags:
-      - Transactions
+    - Transactions
 
     summary: Listar transações
     description: >
@@ -192,7 +192,7 @@ def transactions_index(query: TranscationsQuerySchema):
         name: search
         type: string
         required: false
-        description: Filtra as transações pela descrição, buscando textos que começam com o valor informado.
+        description: Filtra as transações pela descrição.
         example: Compra
 
       - in: query
@@ -221,31 +221,32 @@ def transactions_index(query: TranscationsQuerySchema):
 
       - in: query
         name: type
-        type: array
-        items:
-          type: string
-          enum:
-            - income
-            - expense
-        collectionFormat: multi
+        type: string
+        enum:
+          - income
+          - expense
         required: false
-        description: Filtra as transações por um ou mais tipos. Informe o parâmetro repetidamente para selecionar vários tipos.
+        description: Filtra as transações pelo tipo.
         example: expense
 
       - in: query
         name: minAmount
         type: number
-        format: double
+        format: decimal
+        minimum: 0
+        exclusiveMinimum: true
         required: false
-        description: Valor mínimo da transação. Retorna transações com valor maior ou igual ao informado.
+        description: Valor mínimo da transação, maior que zero.
         example: 50.00
 
       - in: query
         name: maxAmount
         type: number
-        format: double
+        format: decimal
+        minimum: 0
+        exclusiveMinimum: true
         required: false
-        description: Valor máximo da transação. Retorna transações com valor menor ou igual ao informado.
+        description: Valor máximo da transação, maior que zero.
         example: 500.00
 
     responses:
