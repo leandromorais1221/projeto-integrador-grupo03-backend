@@ -160,7 +160,10 @@ def categories_index():
     
     user_id = UUID(get_jwt_identity())
 
-    stmt = select(Category).where(Category.user_id == user_id)
+    stmt = select(Category).where(
+        Category.user_id == user_id
+    )
+
     categories = db.session.execute(stmt).scalars()
 
     return jsonify({
@@ -257,7 +260,11 @@ def categories_update(category_id: UUID, body: CategorySchema):
 
     user_id = UUID(get_jwt_identity())
 
-    stmt = select(Category).where((Category.id == category_id) & (Category.user_id == user_id))
+    stmt = select(Category).where(
+        (Category.id == category_id) & 
+        (Category.user_id == user_id)
+    )
+    
     category = db.session.execute(stmt).scalar()
 
     if not category:

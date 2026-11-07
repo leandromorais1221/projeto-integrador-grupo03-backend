@@ -77,13 +77,21 @@ def get_summary(query: SummaryQuerySchema):
     end_date_filter = query.endDate
 
     try:
-        stmt = select(Transaction.type, func.coalesce(func.sum(Transaction.amount), 0)).where(Transaction.user_id == user_id).group_by(Transaction.type)
+        stmt = select(Transaction.type, func.coalesce(func.sum(Transaction.amount), 0)).where(
+            Transaction.user_id == user_id
+          ).group_by(
+            Transaction.type
+          )
 
         if start_date_filter:
-            stmt = stmt.where(Transaction.date >= start_date_filter)
+            stmt = stmt.where(
+              Transaction.date >= start_date_filter
+            )
 
         if end_date_filter:
-            stmt = stmt.where(Transaction.date <= end_date_filter)
+            stmt = stmt.where(
+              Transaction.date <= end_date_filter
+            )
             
         amounts = db.session.execute(stmt).all()
 
@@ -202,10 +210,14 @@ def get_by_category(query: ByCategoryQuerySchema):
         )
 
         if start_date_filter:
-            stmt = stmt.where(Transaction.date >= start_date_filter)
+            stmt = stmt.where(
+                Transaction.date >= start_date_filter
+            )
 
         if end_date_filter:
-            stmt = stmt.where(Transaction.date <= end_date_filter)
+            stmt = stmt.where(
+                Transaction.date <= end_date_filter
+            )
 
         results = db.session.execute(stmt).all()
 

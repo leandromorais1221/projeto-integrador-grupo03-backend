@@ -129,7 +129,11 @@ def transactions_create(body: TransactionSchema):
     
     user_id = UUID(get_jwt_identity())
 
-    stmt = select(Category).where((Category.user_id == user_id) & (Category.id == body.category_id))
+    stmt = select(Category).where(
+        (Category.user_id == user_id) & 
+        (Category.id == body.category_id)
+    )
+
     category_exists = db.session.execute(stmt).scalar()
 
     if not category_exists:
@@ -281,32 +285,49 @@ def transactions_index(query: TranscationsQuerySchema):
     min_amount_filter = query.minAmount
     max_amount_filter = query.maxAmount
 
-    print(type_filter)
-
-    stmt = select(Transaction).where(Transaction.user_id == user_id)
+    stmt = select(Transaction).where(
+        Transaction.user_id == user_id
+    )
 
     if search_filter:
-      stmt = stmt.where(Transaction.description.ilike(f'{search_filter}%'))
+        stmt = stmt.where(
+            Transaction.description.ilike(f'{search_filter}%')
+        )
 
     if start_date_filter:
-      stmt = stmt.where(Transaction.date >= start_date_filter)
+        stmt = stmt.where(
+            Transaction.date >= start_date_filter
+        )
 
     if end_date_filter:
-        stmt = stmt.where(Transaction.date <= end_date_filter)
+        stmt = stmt.where(
+            Transaction.date <= end_date_filter
+        )
 
     if category_id_filter:
-        stmt = stmt.where(Transaction.category_id == UUID(category_id_filter))
+        stmt = stmt.where(
+            Transaction.category_id == UUID(category_id_filter)
+        )
 
     if type_filter:
-        stmt = stmt.where(Transaction.type == type_filter)
+        stmt = stmt.where(
+            Transaction.type == type_filter
+        )
 
     if min_amount_filter:
-        stmt = stmt.where(Transaction.amount >= min_amount_filter)
+        stmt = stmt.where(
+            Transaction.amount >= min_amount_filter
+        )
 
     if max_amount_filter:
-        stmt = stmt.where(Transaction.amount <= max_amount_filter)
+        stmt = stmt.where(
+            Transaction.amount <= max_amount_filter
+        )
         
-    stmt = stmt.order_by(Transaction.date.desc())
+    stmt = stmt.order_by(
+        Transaction.date.desc()
+    )
+
     transactions = db.session.execute(stmt).scalars()
     
     return jsonify({
@@ -436,7 +457,11 @@ def transactions_update(transaction_id: UUID, body: TransactionSchema):
     
     user_id = UUID(get_jwt_identity())
 
-    category_stmt = select(Category).where((Category.user_id == user_id) & (Category.id == body.category_id))
+    category_stmt = select(Category).where(
+        (Category.user_id == user_id) & 
+        (Category.id == body.category_id)
+    )
+
     category_exists = db.session.execute(category_stmt).scalar()
 
     if not category_exists:
@@ -444,7 +469,11 @@ def transactions_update(transaction_id: UUID, body: TransactionSchema):
             'message': 'Categoria não encontrada'
         }), 404
 
-    transaction_stmt = select(Transaction).where((Transaction.user_id == user_id) & (Transaction.id == transaction_id))
+    transaction_stmt = select(Transaction).where(
+        (Transaction.user_id == user_id) & 
+        (Transaction.id == transaction_id)
+    )
+
     transaction_exists = db.session.execute(transaction_stmt).scalar()
 
     if not transaction_exists:
@@ -527,7 +556,11 @@ def transactions_delete(transaction_id: UUID):
         
     user_id = UUID(get_jwt_identity())
 
-    stmt = select(Transaction).where((Transaction.user_id == user_id) & (Transaction.id == transaction_id))
+    stmt = select(Transaction).where(
+        (Transaction.user_id == user_id) & 
+        (Transaction.id == transaction_id)
+    )
+
     transaction = db.session.execute(stmt).scalar()
 
     if not transaction:

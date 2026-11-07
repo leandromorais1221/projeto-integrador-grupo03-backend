@@ -111,7 +111,11 @@ def auth_register(body: UserSchema):
               example: "Erro consulte o suporte técnico"
     """
 
-    stmt = select(User).where((User.cpf == body.cpf) | (User.email == body.email))
+    stmt = select(User).where(
+        (User.cpf == body.cpf) | 
+        (User.email == body.email)
+    )
+    
     registered = db.session.execute(stmt).scalar()
 
     if registered:
@@ -132,6 +136,7 @@ def auth_register(body: UserSchema):
 
     except SQLAlchemyError:
         db.session.rollback()
+
         return jsonify({
             'message': 'Erro consulte o suporte técnico'
         }), 500
@@ -206,7 +211,10 @@ def auth_login(body: LoginSchema):
               example: "Email ou senha inválidos"
     """
         
-    stmt = select(User).where(User.email == body.email)
+    stmt = select(User).where(
+        User.email == body.email
+    )
+    
     user = db.session.execute(stmt).scalar()
 
     if not user or not check_password_hash(user.password_hash, body.password):
@@ -281,7 +289,11 @@ def auth_me():
     """
     
     current_user_id = UUID(get_jwt_identity())
-    stmt = select(User).where(User.id == current_user_id)
+
+    stmt = select(User).where(
+        User.id == current_user_id
+    )
+
     user = db.session.execute(stmt).scalar()
     
     return jsonify({
@@ -387,7 +399,10 @@ def auth_update(body: UserSchema):
     
     current_user_id = UUID(get_jwt_identity())
 
-    stmt = select(User).where(User.id == current_user_id)
+    stmt = select(User).where(
+        User.id == current_user_id
+    )
+
     user = db.session.execute(stmt).scalar()
 
     try:
@@ -444,7 +459,11 @@ def auth_delete():
     """
 
     current_user_id = UUID(get_jwt_identity())
-    stmt = select(User).where(User.id == current_user_id)
+    
+    stmt = select(User).where(
+        User.id == current_user_id
+    )
+
     user = db.session.execute(stmt).scalar()
 
     try:
