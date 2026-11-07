@@ -31,6 +31,15 @@ class TransactionSchema(ModelClass):
     payment_method: PaymentMethod
     category_id: UUID
 
+class TranscationsQuerySchema(ModelClass):
+    search: str | None = None
+    startDate: date | None = None
+    endDate: date | None = None
+    categoryId: UUID | None = None
+    type: TransactionType | None = None
+    minAmount: Decimal | None = Field(gt=0, default=None)
+    maxAmount: Decimal | None = Field(gt=0, default=None)
+
 class SummaryQuerySchema(ModelClass):
     startDate: date | None = None
     endDate: date | None = None

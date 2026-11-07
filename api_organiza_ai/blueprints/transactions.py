@@ -7,6 +7,8 @@ from flask_pydantic import validate
 from ..schemas import TransactionSchema
 from ..models import Transaction, Category
 from ..extensions import db
+from ..wrappers import validate_query
+from ..schemas import TranscationsQuerySchema
 
 
 bp = Blueprint('transactions', __name__, url_prefix='/transactions')
@@ -163,7 +165,8 @@ def transactions_create(body: TransactionSchema):
 
 @bp.get('')
 @jwt_required()
-def transactions_index():
+@validate_query(TranscationsQuerySchema)
+def transactions_index(query: TranscationsQuerySchema):
     """ Lista as transações do usuário autenticado.
 
     ---
@@ -269,13 +272,15 @@ def transactions_index():
     
     user_id = UUID(get_jwt_identity())
 
-    search_filter = request.args.get('search', None)
-    start_date_filter = request.args.get('startDate', None)
-    end_date_filter = request.args.get('endDate', None)
-    category_id_filter = request.args.get('categoryId', None)
-    type_filter = request.args.getlist('type', None)
-    min_amount_filter = request.args.get('minAmount', None)
-    max_amount_filter = request.args.get('maxAmount', None)
+    search_filter = query.search
+    start_date_filter = query.startDate
+    end_date_filter = query.endDate
+    category_id_filter = query.categoryId
+    type_filter = query.type
+    min_amount_filter = query.minAmount
+    max_amount_filter = query.maxAmount
+
+    print(type_filter)
 
     stmt = select(Transaction).where(Transaction.user_id == user_id)
 
@@ -292,7 +297,7 @@ def transactions_index():
         stmt = stmt.where(Transaction.category_id == UUID(category_id_filter))
 
     if type_filter:
-        stmt = stmt.where(Transaction.type.in_(type_filter))
+        stmt = stmt.where(Transaction.type == type_filter)
 
     if min_amount_filter:
         stmt = stmt.where(Transaction.amount >= min_amount_filter)
