@@ -410,12 +410,14 @@ def auth_update(body: UserSchema):
         user.cpf = body.cpf
         user.email = body.email
         user.phone = body.phone
-        user.password = generate_password_hash(body.password)
+        user.password_hash = generate_password_hash(body.password)
         db.session.commit()
 
     except SQLAlchemyError:
+        db.session.rollback()
+
         return jsonify({
-          'message:': 'Erro consulte o suporte técnico'
+          'message': 'Erro consulte o suporte técnico'
         }), 500
 
     return jsonify({
