@@ -79,18 +79,18 @@ def get_summary(query: SummaryQuerySchema):
     try:
         stmt = select(Transaction.type, func.coalesce(func.sum(Transaction.amount), 0)).where(
             Transaction.user_id == user_id
-          ).group_by(
+        ).group_by(
             Transaction.type
-          )
+        )
 
         if start_date_filter:
             stmt = stmt.where(
-              Transaction.date >= start_date_filter
+                Transaction.date >= start_date_filter
             )
 
         if end_date_filter:
             stmt = stmt.where(
-              Transaction.date <= end_date_filter
+                Transaction.date <= end_date_filter
             )
             
         amounts = db.session.execute(stmt).all()
