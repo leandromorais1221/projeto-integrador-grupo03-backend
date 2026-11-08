@@ -174,22 +174,27 @@ def categories_index():
 @jwt_required()
 @validate()
 def categories_update(category_id: UUID, body: CategorySchema):
-    """ Atualiza uma categoria existente.
+    """Atualiza uma categoria existente.
 
     ---
     tags:
       - Categories
+
     summary: Atualização de categoria
     description: >
       Atualiza o nome e o tipo de uma categoria pertencente ao usuário
       autenticado. Somente categorias do usuário autenticado podem ser
-      atualizadas.
+      atualizadas. Retorna conflito se houver transações vinculadas.
+
     security:
       - Bearer: []
+
     consumes:
       - application/json
+
     produces:
       - application/json
+
     parameters:
       - in: path
         name: category_id
@@ -198,6 +203,7 @@ def categories_update(category_id: UUID, body: CategorySchema):
         required: true
         description: Identificador UUID da categoria que será atualizada.
         example: "550e8400-e29b-41d4-a716-446655440000"
+
       - in: body
         name: body
         required: true
@@ -218,45 +224,36 @@ def categories_update(category_id: UUID, body: CategorySchema):
                 - income
                 - expense
               example: "income"
+
     responses:
       200:
         description: Categoria atualizada com sucesso.
-        schema:
-          type: object
-          properties:
-            message:
-              type: string
-              example: "Categoria atualizada com sucesso"
+        examples:
+          application/json:
+            message: "Categoria atualizada com sucesso"
             data:
-              type: object
-              description: Dados da categoria atualizada.
-              properties:
-                id:
-                  type: string
-                  example: "550e8400-e29b-41d4-a716-446655440000"
-                name:
-                  type: string
-                  example: "Salário"
-                type:
-                  type: string
-                  example: "income"
+              id: "550e8400-e29b-41d4-a716-446655440000"
+              name: "Salário"
+              type: "income"
+
       404:
         description: Categoria não encontrada ou não pertencente ao usuário.
-        schema:
-          type: object
-          properties:
-            message:
-              type: string
-              example: "Categoria não encontrada"
+        examples:
+          application/json:
+            message: "Categoria não encontrada"
+
+      409:
+        description: A categoria não pode ser atualizada pois há transações vinculadas.
+        examples:
+          application/json:
+            message: "Erro a categoria não pode ser atualizada pois há transações vinculadas"
+
       500:
         description: Erro interno ao atualizar a categoria.
-        schema:
-          type: object
-          properties:
-            message:
-              type: string
-              example: "Erro consulte o suporte técnico"
-    """
+        examples:
+          application/json:
+            message: "Erro consulte o suporte técnico"
+        """
 
     user_id = UUID(get_jwt_identity())
 
@@ -271,6 +268,11 @@ def categories_update(category_id: UUID, body: CategorySchema):
         return jsonify({
             'message': 'Categoria não encontrada'
         }), 404
+
+    if category.transactions:
+        return jsonify({
+            'message': 'Erro a categoria não pode ser atualizada pois há transações vinculadas'
+        }), 409
 
     try:
         category.name = body.name
