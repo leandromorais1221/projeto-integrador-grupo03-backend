@@ -93,6 +93,7 @@ def categories_create(body: CategorySchema):
         (Category.type == body.type) & 
         (Category.user_id == user_id)
     )
+    
     category_exists = db.session.execute(stmt).scalar()
 
     if category_exists:
@@ -357,6 +358,7 @@ def categories_delete(category_id: UUID):
         (Category.id == category_id) & 
         (Category.user_id == user_id)
     )
+    
     category = db.session.execute(stmt).scalar()
 
     if not category:

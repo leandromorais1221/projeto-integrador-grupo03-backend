@@ -115,7 +115,9 @@ def get_summary(query: SummaryQuerySchema):
         }), 200
         
     except SQLAlchemyError:
-        return jsonify({'message': 'Erro consulte o suporte técnico'}), 500
+        return jsonify(
+            {'message': 'Erro consulte o suporte técnico'}
+        ), 500
 
 
 @bp.get('/by-category')

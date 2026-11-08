@@ -469,13 +469,16 @@ def auth_delete():
     user = db.session.execute(stmt).scalar()
 
     try:
+
       db.session.delete(user)
       db.session.commit()
 
     except SQLAlchemyError: 
-      return jsonify({
-          'message': 'Erro consulte o suporte técnico'
-      }), 500
+        db.session.rollback()
+
+        return jsonify({
+            'message': 'Erro consulte o suporte técnico'
+        }), 500
 
     return jsonify({
        'message': 'Conta deletada com sucesso'
