@@ -306,7 +306,7 @@ def transactions_index(query: TranscationsQuerySchema):
 
     if category_id_filter:
         stmt = stmt.where(
-            Transaction.category_id == UUID(category_id_filter)
+            Transaction.category_id == category_id_filter
         )
 
     if type_filter:
