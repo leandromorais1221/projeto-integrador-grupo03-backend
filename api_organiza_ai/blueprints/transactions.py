@@ -6,7 +6,7 @@ from sqlalchemy import select
 from flask_pydantic import validate
 from ..schemas import TransactionSchema
 from ..models import Transaction, Category
-from ..extensions import db
+from ..config.extensions import db
 from ..wrappers import validate_query
 from ..schemas import TranscationsQuerySchema
 

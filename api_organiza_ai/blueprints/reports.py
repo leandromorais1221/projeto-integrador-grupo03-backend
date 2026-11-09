@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from uuid import UUID
 from ..wrappers import validate_query
 from ..schemas import SummaryQuerySchema, ByCategoryQuerySchema
-from ..extensions import db
+from ..config.extensions import db
 from ..models import Transaction, Category, TransactionType
 
 bp = Blueprint('reports', __name__, url_prefix='/reports')

@@ -1,5 +1,5 @@
 from api_organiza_ai import create_app, Flask
-from api_organiza_ai.extensions import db
+from api_organiza_ai.config.extensions import db
 import pytest
 from actions.auth_action import AuthAction
 

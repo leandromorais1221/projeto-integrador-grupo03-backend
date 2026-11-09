@@ -9,17 +9,17 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
-    from .extensions import cors
+    from .config.extensions import cors
     cors.init_app(app)
 
-    from .extensions import swagger
+    from .config.extensions import swagger
     swagger.init_app(app)
 
-    from .extensions import db, migrate
+    from .config.extensions import db, migrate
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from .extensions import jwt
+    from .config.extensions import jwt
     jwt.init_app(app)
 
     from .blueprints import auth, categories, transactions, reports

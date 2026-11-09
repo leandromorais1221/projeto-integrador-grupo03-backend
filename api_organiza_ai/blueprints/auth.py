@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_pydantic import validate
 from ..schemas import UserSchema, LoginSchema
-from ..extensions import db
+from ..config.extensions import db
 from sqlalchemy import select
 from api_organiza_ai.models import User
 from sqlalchemy.exc import SQLAlchemyError

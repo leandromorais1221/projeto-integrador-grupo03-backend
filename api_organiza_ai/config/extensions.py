@@ -2,7 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flasgger import Swagger
-from .config.swagger import SWAGGER_TEMPLATE
+from .swagger import SWAGGER_TEMPLATE
 from flask_cors import CORS
 
 cors = CORS()

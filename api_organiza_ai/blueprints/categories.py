@@ -4,7 +4,7 @@ from flask_pydantic import validate
 from ..schemas import CategorySchema
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import SQLAlchemyError
-from ..extensions import db
+from ..config.extensions import db
 from uuid import UUID
 from sqlalchemy import select
 
