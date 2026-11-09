@@ -22,7 +22,6 @@ def create_app(test_config=None):
     from .extensions import jwt
     jwt.init_app(app)
 
-    # Adicionado o blueprint de reports aqui!
     from .blueprints import auth, categories, transactions, reports
     app.register_blueprint(auth.bp)
     app.register_blueprint(categories.bp)

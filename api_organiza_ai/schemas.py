@@ -9,9 +9,9 @@ class ModelClass(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
 class UserSchema(ModelClass):
-    name: str = Field(min_length=3)
+    name: str = Field(min_length=3, max_length=120)
     cpf: str = Field(min_length=11, max_length=14)
-    email: EmailStr
+    email: EmailStr = Field(max_length=120)
     phone: str = Field(min_length=10, max_length=15)
     password: str = Field(min_length=6)
 
@@ -20,11 +20,11 @@ class LoginSchema(ModelClass):
     password: str
 
 class CategorySchema(ModelClass):
-    name: str = Field(min_length=3)
+    name: str = Field(min_length=3, max_length=50)
     type: TransactionType
 
 class TransactionSchema(ModelClass):
-    description: str = Field(min_length=3)
+    description: str = Field(min_length=3, max_length=200)
     amount: Decimal = Field(gt=0)
     type: TransactionType
     date: date
