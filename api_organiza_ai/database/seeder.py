@@ -100080,6 +100080,18 @@ def populate_db():
         }
     ]
 
+    stmt_user = db.delete(User)
+    db.session.execute(stmt_user)
+    db.session.commit()
+
+    stm_category = db.delete(Category)
+    db.session.execute(stm_category)
+    db.session.commit()
+
+    stmt_transaction = db.delete(Transaction)
+    db.session.execute(stmt_transaction)
+    db.session.commit()
+
     new_user = User(
         id=UUID(user['id']),
         name=user['name'],
