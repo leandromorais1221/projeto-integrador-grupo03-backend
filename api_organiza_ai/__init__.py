@@ -28,4 +28,7 @@ def create_app(test_config=None):
     app.register_blueprint(transactions.bp)
     app.register_blueprint(reports.bp)
 
+    from .cli import db_seed
+    app.cli.add_command(db_seed)
+
     return app
