@@ -11,7 +11,7 @@ class ModelClass(BaseModel):
 class UserSchema(ModelClass):
     name: str = Field(min_length=3, max_length=120)
     cpf: str = Field(min_length=11, max_length=14)
-    email: EmailStr = Field(max_length=120)
+    email: EmailStr
     phone: str = Field(min_length=10, max_length=15)
     password: str = Field(min_length=6)
 
