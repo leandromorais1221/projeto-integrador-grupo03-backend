@@ -121,7 +121,7 @@ def auth_register(body: UserSchema):
     if registered:
         return jsonify({
             'message': 'CPF ou Email já cadastrados'
-        }), 400
+        }), 409
 
     try:
         user = User(
