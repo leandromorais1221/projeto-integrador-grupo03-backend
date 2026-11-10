@@ -249,6 +249,30 @@ def get_by_category(query: ByCategoryQuerySchema):
 @bp.get('/transactions-pdf')
 @jwt_required()
 def reports_transactions_pdf():
+    """Exporta o relatório de transações do usuário em formato XLSX.
+
+    ---
+    tags:
+      - Reports
+
+    summary: Exportar transações (XLSX)
+    description: >
+      Gera e faz o download de um arquivo no formato XLSX contendo todas as
+      transações cadastradas pelo usuário autenticado, ordenadas da data mais recente
+      para a mais antiga. O identificador do usuário é obtido através do token JWT.
+
+    security:
+      - Bearer: []
+
+    produces:
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+    responses:
+      200:
+        description: Arquivo XLSX gerado e enviado com sucesso como anexo.
+        schema:
+          type: file
+    """
 
     user_id = UUID(get_jwt_identity())
 
