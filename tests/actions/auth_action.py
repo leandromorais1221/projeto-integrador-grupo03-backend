@@ -1,19 +1,24 @@
+from api_organiza_ai.config.extensions import db
+from api_organiza_ai.models import User
+from sqlalchemy import select
 
 
 class AuthAction:
     def __init__(self, client):
+        self._email = 'usuarioteste@gmail.com'
+        self._password = 'teste123456'
         self.client = client
         self.token = self._get_token()
-        
+
     def _get_token(self):
         response = self.client.post(
             '/auth/login',
             json={
-                'email': 'usuarioteste@gmail.com',
-                'password': 'teste123456'
+                'email': self._email,
+                'password': self._password
             }
         )
-        return response.json['access_token']
+        return response.json.get('access_token')
 
     def get(self, url):
         return self.client.get(
@@ -35,9 +40,16 @@ class AuthAction:
             headers={'Authorization': f'Bearer {self.token}'}
         )
 
-    def delete(self, url, body):
+    def delete(self, url):
         return self.client.delete(
             url,
-            json=body,
             headers={'Authorization': f'Bearer {self.token}'}
         )
+
+    def get_user(self):
+        stmt = select(User).where(
+            User.email == self._email
+        )
+        return db.session.execute(stmt).scalar()
+
+
