@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import select, func
 from sqlalchemy.exc import SQLAlchemyError
@@ -7,6 +7,8 @@ from ..wrappers import validate_query
 from ..schemas import SummaryQuerySchema, ByCategoryQuerySchema
 from ..config.extensions import db
 from ..models import Transaction, Category, TransactionType
+import openpyxl
+from io import BytesIO
 
 bp = Blueprint('reports', __name__, url_prefix='/reports')
 
@@ -243,3 +245,51 @@ def get_by_category(query: ByCategoryQuerySchema):
     
     except SQLAlchemyError:
         return jsonify({'message': 'Erro consulte o suporte técnico'}), 500
+
+@bp.get('/transactions-pdf')
+@jwt_required()
+def reports_transactions_pdf():
+
+    user_id = UUID(get_jwt_identity())
+
+    stmt = select(Transaction.date, Transaction.description, Category.name, Transaction.type, Transaction.amount).join(
+        Category, Transaction.category_id == Category.id
+    ).where(
+        Transaction.user_id == user_id
+    ).order_by(
+        Transaction.date.desc()
+    )
+
+    transactions = db.session.execute(stmt).all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Relatório de Transações Cadastradas"
+
+    ws['A1'] = 'Data'
+    ws['B1'] = 'Descrição'
+    ws['C1'] = 'Categoria'
+    ws['D1'] = 'Tipo'
+    ws['E1'] = 'Valor'
+
+    for transaction in transactions:
+        ws.append([transaction.date, transaction.description, transaction.name, 'Receita' if transaction.type == TransactionType.INCOME else 'Despesa', transaction.amount])
+        
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="relatorio.xlsx",
+        mimetype=(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    ), 200
+
+
+
+
+    
+    
