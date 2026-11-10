@@ -239,7 +239,7 @@ def test_rota_me_deve_atualizar_informacoes_do_usuario_logado(auth, app):
     body = {
         'name': 'Usuario',
         'cpf': '009.334.541-82',
-        'email': 'usuario@gmail.com',
+        'email': 'usuarioteste@gmail.com',
         'phone': '(11) 98452-1987',
         'password': 'teste123456'
     }
@@ -264,19 +264,15 @@ def test_rota_me_deve_atualizar_informacoes_do_usuario_logado(auth, app):
     assert data['message'] == 'Usuário atualizado com sucesso'
 
 def test_rota_me_deve_excluir_conta_do_usuario_logado(auth, app):
-
     user_logged = auth.get_user()
-
     response = auth.delete(
         url='/auth/me'
     )
-
     with app.app_context():
         stmt = select(User).where(
             User.id == user_logged.id,
         )
         user = db.session.execute(stmt).scalar()
-
     data = response.json
     assert user is None
     assert response.status_code == 200
