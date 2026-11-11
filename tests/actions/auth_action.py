@@ -5,8 +5,8 @@ from sqlalchemy import select
 
 class AuthAction:
     def __init__(self, client):
-        self._email = 'usuarioteste@gmail.com'
-        self._password = 'teste123456'
+        self._email = 'usuario.teste@email.com'
+        self._password = '123456'
         self.client = client
         self.token = self._get_token()
 

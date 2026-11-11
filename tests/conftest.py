@@ -5,7 +5,7 @@ import pytest
 from actions.auth_action import AuthAction
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def app():
     app = create_app(test_config={
         'TESTING': True,

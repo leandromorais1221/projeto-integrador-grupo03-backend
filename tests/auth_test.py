@@ -38,7 +38,7 @@ def test_rejeita_cpf_com_menos_de_11_caracteres(client):
     validation_data = response.json['validation_error']['body_params'][1]
     assert validation_data['msg'] == 'String should have at least 11 characters'
 
-def test_rejeita_cpf_com_mais_de_14_caractres(client):
+def test_rejeita_cpf_com_mais_de_14_caracteres(client):
     body = {
         'cpf': '946.724.674-000'
     }
@@ -164,8 +164,8 @@ def test_rejeita_login_sem_email_e_senha(client):
 
 def test_valida_se_login_retorna_access_token(client):
     body = {
-        'email': 'usuarioteste@gmail.com',
-        'password': 'teste123456'
+        'email': 'usuario.teste@email.com',
+        'password': '123456'
     }
     response = client.post(
         '/auth/login',
@@ -237,11 +237,11 @@ def test_rota_me_deve_retornar_informacoes_do_usuario_logado(auth):
 
 def test_rota_me_deve_atualizar_informacoes_do_usuario_logado(auth, app):
     body = {
-        'name': 'Usuario',
-        'cpf': '009.334.541-82',
-        'email': 'usuarioteste@gmail.com',
-        'phone': '(11) 98452-1987',
-        'password': 'teste123456'
+        'name': 'Usuario Teste Atualizado',
+        'cpf': '009.339.541-82',
+        'email': 'usuario.teste@email.com',
+        'phone': '(11) 3410-200',
+        'password': '123456'
     }
     response = auth.put(
         url='/auth/me', 
