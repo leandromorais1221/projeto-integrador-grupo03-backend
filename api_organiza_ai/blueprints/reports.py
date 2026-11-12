@@ -246,7 +246,7 @@ def get_by_category(query: ByCategoryQuerySchema):
     except SQLAlchemyError:
         return jsonify({'message': 'Erro consulte o suporte técnico'}), 500
 
-@bp.get('/transactions-pdf')
+@bp.get('/transactions-xlsx')
 @jwt_required()
 def reports_transactions_pdf():
     """Exporta o relatório de transações do usuário em formato XLSX.
