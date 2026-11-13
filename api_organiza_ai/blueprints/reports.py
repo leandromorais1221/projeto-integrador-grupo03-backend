@@ -10,6 +10,7 @@ from ..models import Transaction, Category, TransactionType
 import openpyxl
 from io import BytesIO
 
+
 bp = Blueprint('reports', __name__, url_prefix='/reports')
 
 @bp.get('/summary')
@@ -288,7 +289,7 @@ def reports_transactions_pdf():
 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Relatório de Transações Cadastradas"
+    ws.title = "Relatório de transações"
 
     ws['A1'] = 'Data'
     ws['B1'] = 'Descrição'
@@ -306,7 +307,7 @@ def reports_transactions_pdf():
     return send_file(
         output,
         as_attachment=True,
-        download_name="relatorio.xlsx",
+        download_name=f"relatorio.xlsx",
         mimetype=(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
