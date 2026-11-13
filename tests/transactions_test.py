@@ -29,6 +29,18 @@ def test_rejeita_descricao_com_mais_de_200_caracteres(auth):
     assert response.status_code == 400
     assert validation_data[0]['msg'] == 'String should have at most 200 characters'
 
+def test_rejeita_quantia_com_formato_decimal_invalido(auth):
+    body = {
+        'amount': 'aSdS2oOi'
+    }
+    response = auth.post(
+        url='/transactions',
+        body=body
+    )
+    validation_data = response.json['validation_error']['body_params']
+    assert response.status_code == 400
+    assert validation_data[1]['msg'] == 'Input should be a valid decimal'
+
 def test_rejeita_quantia_com_valor_menor_ou_igual_a_zero(auth):
     body = {
         'amount': 0
@@ -41,7 +53,7 @@ def test_rejeita_quantia_com_valor_menor_ou_igual_a_zero(auth):
     assert response.status_code == 400
     assert validation_data[1]['msg'] == 'Input should be greater than 0'
 
-def test_rejeita_enum_de_tipo_inválido(auth):
+def test_rejeita_enum_de_tipo_invalido(auth):
     body = {
         'type': 'SqxwjVfd'
     }
@@ -65,7 +77,7 @@ def test_rejeita_data_com_formato_invalido(auth):
     assert response.status_code == 400
     assert validation_data[3]['msg'] == 'Input should be a valid date or datetime, invalid character in year'
 
-def test_rejeita_enum_de_tipo_inválido(auth):
+def test_rejeita_enum_de_tipo_invalido(auth):
     body = {
         'payment_method': 'YsgbqOdZ'
     }
@@ -89,7 +101,7 @@ def test_rejeita_id_de_categoria_com_formatao_uuid_invalido(auth):
     assert response.status_code == 400
     assert valdiation_data[5]['msg'] == 'Input should be a valid UUID, invalid character: found `q` at 3'
 
-def test_cadastra_transacao_com_dados_válidos(auth, app):
+def test_cadastra_transacao_com_dados_validos(auth, app):
     body = {
         'description': '13º salário - 1ª parcela',
         'amount': '900.00',
@@ -102,7 +114,6 @@ def test_cadastra_transacao_com_dados_válidos(auth, app):
         url='/transactions',
         body=body
     )
-
     with app.app_context():
         stmt = select(Transaction).where(
             Transaction.description == body['description'],
@@ -113,7 +124,6 @@ def test_cadastra_transacao_com_dados_válidos(auth, app):
         )
         category = db.session.execute(stmt).scalar()
         assert category is not None
-
     data = response.json
     assert response.status_code == 201
     assert data['data']['description'] == body['description']
@@ -148,7 +158,7 @@ def test_rejeita_cadastro_com_categoria_nao_cadastrada(auth, app):
     assert response.status_code == 404
     assert data['message'] == 'Categoria não encontrada'
 
-def test_deve_retornar_as_transacoes_do_usuario_em_ordem_decrescente_ordenados_por_data(auth):
+def test_consulta_as_transacoes_em_ordem_decrescente_ordenados_por_data(auth):
     seed_data = [
         {
             "id": "555294ce-33fc-4f25-ab5f-1249a3c76b11",
@@ -1057,6 +1067,71 @@ def test_deve_retornar_as_transacoes_do_usuario_em_ordem_decrescente_ordenados_p
     data = response.json
     assert response.status_code == 200
     assert data['data'] == seed_data
+
+def test_rejeita_consulta_com_filtro_de_data_inicial_com_formato_invalido(auth):
+    response = auth.get(
+        url='/transactions?startDate=3qXPFZTzKYXAlbj8'
+    )
+    validation_data = response.json['validation_error']['query_params']
+    assert response.status_code == 400
+    assert validation_data[0]['msg'] == 'Input should be a valid date or datetime, invalid character in year'
+
+def test_rejeita_consulta_com_filtro_de_data_final_com_formato_invalido(auth):
+    response = auth.get(
+        url='/transactions?endDate=TmtOfsGE0Pcxib8m'
+    )
+    validation_data = response.json['validation_error']['query_params']
+    assert response.status_code == 400
+    assert validation_data[0]['msg'] == 'Input should be a valid date or datetime, invalid character in year'
+
+def test_rejeita_consulta_com_filtro_de_categoria_com_formato_uuid_invalido(auth):
+    response = auth.get(
+        url='/transactions?categoryId=aDqP0eCHYvoo9jZWY4ew2eaGlr1IPodIJzdtNs7fBtqPqu2z'
+    )
+    validation_data = response.json['validation_error']['query_params']
+    assert response.status_code == 400
+    assert validation_data[0]['msg'] == "Input should be a valid UUID, invalid character: found `q` at 3"
+
+def test_rejeita_consulta_com_filtro_de_tipo_com_enum_invalido(auth):
+    response = auth.get(
+        url='/transactions?type=f1wfMoZE'
+    )
+    validation_data = response.json['validation_error']['query_params']
+    assert response.status_code == 400
+    assert validation_data[0]['msg'] == "Input should be 'income' or 'expense'"
+
+def test_rejeita_consulta_com_filtro_de_quantia_minima_com_formato_decimal_invalido(auth):
+    response = auth.get(
+        url='/transactions?minAmount=hlh8EOpA'
+    )
+    validation_data = response.json['validation_error']['query_params']
+    assert response.status_code == 400
+    assert validation_data[0]['msg'] == 'Input should be a valid decimal'
+
+def test_rejeita_consulta_com_filtro_de_quantia_minima_menor_ou_igual_a_zero(auth):
+    response = auth.get(
+        url='/transactions?minAmount=0'
+    )
+    validation_data = response.json['validation_error']['query_params']
+    assert response.status_code == 400
+    assert validation_data[0]['msg'] == 'Input should be greater than 0'
+
+def test_rejeita_consulta_com_filtro_de_quantia_maxima_com_formato_decimal_invalido(auth):
+    response = auth.get(
+        url='/transactions?maxAmount=5gwC3DmA'
+    )
+    validation_data = response.json['validation_error']['query_params']
+    assert response.status_code == 400
+    assert validation_data[0]['msg'] == 'Input should be a valid decimal'
+
+
+def test_rejeita_consulta_com_filtro_de_quantia_maxima_menor_ou_igual_a_zero(auth):
+    response = auth.get(
+        url='/transactions?maxAmount=0'
+    )
+    validation_data = response.json['validation_error']['query_params']
+    assert response.status_code == 400
+    assert validation_data[0]['msg'] == 'Input should be greater than 0'
 
 def test_deve_retornar_as_transacoes_com_filtro_busca_na_descricao_em_ordem_decrescente_ordenados_por_data(auth):
     seed_data = [

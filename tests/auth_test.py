@@ -2,6 +2,20 @@ from api.config.extensions import db
 from api.models import User
 from sqlalchemy import select
 
+
+def test_rejeita_cadastro_sem_campos_requeridos(client):
+    response = client.post(
+        '/auth/register',
+        json={}
+    )
+    validation_data = response.json['validation_error']['body_params']
+    assert response.status_code == 400
+    assert validation_data[0]['msg'] == 'Field required'
+    assert validation_data[1]['msg'] == 'Field required'
+    assert validation_data[2]['msg'] == 'Field required'
+    assert validation_data[3]['msg'] == 'Field required'
+    assert validation_data[4]['msg'] == 'Field required'
+
 def test_rejeita_nome_com_menos_de_3_caracteres(client):
     body = {
         'name': 'Us'
@@ -144,10 +158,7 @@ def test_rejeita_cadastro_de_cpf_e_email_ja_cadastrado(client, app):
     response = client.post('/auth/register', json=body)
     assert response.status_code == 409
     data = response.json
-    
-
     assert data['message'] == 'CPF ou Email já cadastrados'
-
 
 def test_rejeita_login_sem_email_e_senha(client):
     response = client.post(
@@ -174,13 +185,13 @@ def test_valida_se_login_retorna_access_token(client):
     data = response.json
     assert response.status_code == 200
     assert 'access_token' in data
-    assert 'token_type' in data
+    assert data['token_type'] == 'Bearer'
     assert data['message'] == 'Login efetuado com sucesso'
 
 def test_rejeita_login_com_credenciais_inválidas(client):
     body = {
         'email': 'usuarioteste@gmail.com',
-        'password': 'teste'
+        'password': 'KZWss6XrEB20'
     }
     response = client.post(
         '/auth/login',
@@ -243,18 +254,16 @@ def test_rota_me_deve_atualizar_informacoes_do_usuario_logado(auth, app):
         'phone': '(11) 3410-200',
         'password': '123456'
     }
+    user_logged = auth.get_user()
     response = auth.put(
         url='/auth/me', 
         body=body
     )
-
     with app.app_context():
         stmt = select(User).where(
-            User.email == body['email'],
-            User.cpf == body['cpf']
+            User.id == user_logged.id
         )
         user = db.session.execute(stmt).scalar()
-
     data = response.json
     assert response.status_code == 200
     assert user.name == body['name']

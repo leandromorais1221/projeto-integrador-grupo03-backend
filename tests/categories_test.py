@@ -55,7 +55,6 @@ def test_registra_categoria_com_dados_validos(auth, app):
             Category.type == body['type']
         )
         category = db.session.execute(stmt).scalar()
-
     data = response.json
     assert category is not None
     assert response.status_code == 201
@@ -72,6 +71,13 @@ def test_rejeita_cadastro_de_categoria_e_tipo_ja_cadastrados(auth, app):
         url='/categories',
         body=body
     )
+    with app.app_context():
+        stmt = select(Category).where(
+            Category.name == body['name'],
+            Category.type == body['type']
+        )
+        category = db.session.execute(stmt).scalar()
+        assert category is not None
     data = response.json
     assert response.status_code == 409
     assert data['message'] == 'Categoria já cadastrada'
@@ -129,7 +135,6 @@ def test_deve_retornar_as_categorias_do_usuario(auth):
             "type": "income"
         }
     ]
-
     request = auth.get(
         url='/categories'
     )
@@ -146,7 +151,6 @@ def test_atualiza_categoria_existente_do_usuario(auth, app):
         )
         db.session.add(category)
         db.session.commit()
-
         category_id = category.id
     body = {
         'name': 'Aluguel Atualizado',
@@ -181,7 +185,6 @@ def test_rejeita_atualizar_categoria_nao_cadastrada(auth, app):
     data = request.json
     assert request.status_code == 404
     assert data['message'] == 'Categoria não encontrada'
-
 
 def test_rejeita_atualizar_categoria_com_transacoes_vinculadas(auth, app):
     category_id = 'd924100a-d337-46c2-ad60-78b18a124568'

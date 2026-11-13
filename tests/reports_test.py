@@ -15,7 +15,7 @@ def test_deve_retornar_o_total_de_receitas_despesas_e_balanco_das_transacoes_do_
     assert response.status_code == 200
     assert data['data'] == seed_data
 
-def test_deve_retornar_o_total_de_receitas_despesas_e_balanco_com_filtro_de_data_inicial_das_transacoes_do_usuario(auth):
+def test_deve_retornar_o_total_de_receitas_despesas_e_balanco_com_filtro_de_data_inicial_das_transacoes(auth):
     seed_data = {
         'income': 52432.90,
         'expense': 16501.93,
@@ -28,7 +28,7 @@ def test_deve_retornar_o_total_de_receitas_despesas_e_balanco_com_filtro_de_data
     assert response.status_code == 200
     assert data['data'] == seed_data
 
-def test_deve_retornar_o_total_de_receitas_despesas_e_balanco_com_filtro_de_data_final_das_transacoes_do_usuario(auth):
+def test_deve_retornar_o_total_de_receitas_despesas_e_balanco_com_filtro_de_data_final_das_transacoes(auth):
     seed_data = {
         'income': 62864.33,
         'expense': 17647.49,
@@ -41,7 +41,7 @@ def test_deve_retornar_o_total_de_receitas_despesas_e_balanco_com_filtro_de_data
     assert response.status_code == 200
     assert data['data'] == seed_data
 
-def test_deve_retornar_o_total_de_receitas_despesas_e_balanco_com_filtro_entre_data_final_e_inicial_das_transacoes_do_usuario(auth):
+def test_deve_retornar_o_total_de_receitas_despesas_e_balanco_com_filtro_entre_data_final_e_inicial_das_transacoes(auth):
     seed_data = {
         'income': 57403.78,
         'expense': 22719.77,
@@ -54,7 +54,23 @@ def test_deve_retornar_o_total_de_receitas_despesas_e_balanco_com_filtro_entre_d
     assert response.status_code == 200
     assert data['data'] == seed_data
 
-def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_ordenando_por_valor_em_ordem_descrescente_do_usuario(auth):
+def test_rejeita_consulta_sem_filtro_de_categoria(auth):
+    response = auth.get(
+        url='/reports/by-category',
+    )
+    validation_data = response.json['validation_error']['query_params']
+    assert response.status_code == 400
+    assert validation_data[0]['msg'] == 'Field required'
+
+def test_rejeita_consulta_com_filtro_de_tipo_com_enum_invalido(auth):
+    response = auth.get(
+        url='/reports/by-category?type=ZyWuTPXh',
+    )
+    validation_data = response.json['validation_error']['query_params']
+    assert response.status_code == 400
+    assert validation_data[0]['msg'] == "Input should be 'income' or 'expense'"
+    
+def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_ordenando_por_valor_em_ordem_descrescente(auth):
     seed_data = [
         {
             "category_id": "f7119110-d501-4434-83a5-ed75028832c3",
@@ -87,7 +103,6 @@ def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_ord
             "percentage": 15.70
         }
     ]
-
     response = auth.get(
         url='/reports/by-category?type=expense'
     )
@@ -95,7 +110,7 @@ def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_ord
     assert response.status_code == 200
     assert data['data'] == seed_data
 
-def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_e_data_inicial_ordenando_por_valor_em_ordem_descrescentedo_do_usuario(auth):
+def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_e_data_inicial_ordenando_por_valor_em_ordem_descrescente(auth):
     seed_data = [
         {
             "category_id": "8cd39aba-d319-4869-96f0-915ae03cecb0",
@@ -135,7 +150,7 @@ def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_e_d
     assert response.status_code == 200
     assert data['data'] == seed_data
 
-def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_e_data_final_ordenando_por_valor_em_ordem_descrescente_do_usuario(auth):
+def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_e_data_final_ordenando_por_valor_em_ordem_descrescente(auth):
     seed_data = [
         {
             "category_id": "5c6c92f0-c78b-4e66-80c3-d3cf060295a2",
@@ -175,7 +190,7 @@ def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_e_d
     assert response.status_code == 200
     assert data['data'] == seed_data
 
-def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_entre_data_final_e_inicial_ordenando_por_valor_em_ordem_descrescente_do_usuario(auth):
+def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_entre_data_final_e_inicial_ordenando_por_valor_em_ordem_descrescente(auth):
     seed_data = [
         {
             "category_id": "5c6c92f0-c78b-4e66-80c3-d3cf060295a2",
@@ -215,7 +230,7 @@ def test_deve_retornar_o_total_da_categoria_e_porcentagem_com_filtro_de_tipo_ent
     assert response.status_code == 200
     assert data['data'] == seed_data
 
-def test_deve_retornar_o_arquivo_xlsx_com_as_transacoes_do_usuario(auth):
+def test_deve_retornar_o_arquivo_xlsx_com_as_transacoes(auth):
     response = auth.get(
         url='/reports/transactions-xlsx'
     )
