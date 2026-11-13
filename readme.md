@@ -99,7 +99,7 @@ Adicione as variáveis necessárias para o projeto.
 Exemplo Configuração:
 
 SQLALCHEMY_DATABASE_URI='sqlite:///storage.db'
-JWT_SECRET_KEY='Ey@gpBk=ZFm3l3Pa!FI6i4n,KDJ.nsx'
+JWT_SECRET_KEY='d0d9f0db152749684264c3d0990587ed67b41e0e3e29fc763d672eafeb316b6e'
 
 6. Executar as migrações de banco de dados
 
@@ -109,9 +109,9 @@ flask --app api_organiza_ai db upgrade
 
 Com o ambiente virtual ativado:
 
-flask --app api_organiza_ai run --debug
+flask --app api run
 
 A api estará disponível em: http://127.0.0.1:5000/
-A documentação estará disponível em : http://127.0.0.1:5000/apidocs/
+A documentação interativa estará disponível em : http://127.0.0.1:5000/apidocs/
 
 Se o projeto estiver sendo configurado pela primeira vez e não possuir migrations, consulte a documentação do projeto antes de executar flask db migrate.
