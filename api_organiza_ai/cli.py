@@ -8,5 +8,3 @@ from .database.seeder import populate_db
 def db_seed():
     populate_db()
     click.echo('Banco de dados populado com sucesso!')
-
-
