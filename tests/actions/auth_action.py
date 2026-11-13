@@ -1,5 +1,5 @@
-from api_organiza_ai.config.extensions import db
-from api_organiza_ai.models import User
+from api.config.extensions import db
+from api.models import User
 from sqlalchemy import select
 
 

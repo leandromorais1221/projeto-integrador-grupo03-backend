@@ -5,7 +5,7 @@ from flask_pydantic import validate
 from ..schemas import UserSchema, LoginSchema
 from ..config.extensions import db
 from sqlalchemy import select
-from api_organiza_ai.models import User
+from api.models import User
 from sqlalchemy.exc import SQLAlchemyError
 from uuid import UUID
 from datetime import timedelta

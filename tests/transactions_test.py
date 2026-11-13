@@ -1,5 +1,5 @@
-from api_organiza_ai.config.extensions import db
-from api_organiza_ai.models import Transaction, Category
+from api.config.extensions import db
+from api.models import Transaction, Category
 from sqlalchemy import select
 from uuid import UUID
 from datetime import datetime

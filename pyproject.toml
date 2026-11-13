@@ -1,5 +1,5 @@
 [project]
-name = "api_organiza_ai"
+name = "api"
 version = "1.0.0"
 description = "API financeira pessoal para registro, categorização e acompanhamento de transações financeiras"
 requires-python = ">=3.11"
@@ -15,5 +15,5 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["api_organiza_ai*"]
+include = ["api*"]
 exclude = ["instance*", "migrations*"]
