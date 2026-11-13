@@ -24,4 +24,3 @@ def validate_query(model: Type[BaseModel]):
 
         return func_wrapper
     return wrapped_view
-

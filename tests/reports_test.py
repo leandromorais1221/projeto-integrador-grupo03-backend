@@ -231,5 +231,3 @@ def test_deve_retornar_o_arquivo_xlsx_com_as_transacoes_do_usuario(auth):
     assert tab['C1'].value == 'Categoria'
     assert tab['D1'].value == 'Tipo'
     assert tab['E1'].value == 'Valor'
-
-

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from uuid import UUID
 from sqlalchemy.exc import SQLAlchemyError
@@ -582,5 +582,3 @@ def transactions_delete(transaction_id: UUID):
     return jsonify({
         'message': 'Transação deletada com sucesso'
     }), 200
-
-    

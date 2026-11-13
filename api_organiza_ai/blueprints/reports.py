@@ -312,9 +312,3 @@ def reports_transactions_pdf():
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
     ), 200
-
-
-
-
-    
-    

@@ -483,5 +483,3 @@ def auth_delete():
     return jsonify({
        'message': 'Conta deletada com sucesso'
     }), 200
-        
-    

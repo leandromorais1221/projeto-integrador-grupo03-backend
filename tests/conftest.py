@@ -1,6 +1,6 @@
 from api_organiza_ai import create_app, Flask
 from api_organiza_ai.config.extensions import db
-from api_organiza_ai.database.mock_database import mock_db
+from api_organiza_ai.database.seeder_test_db import mock_db
 import pytest
 from actions.auth_action import AuthAction
 
@@ -28,6 +28,3 @@ def client(app: Flask):
 @pytest.fixture()
 def auth(client):
     return AuthAction(client)
-
-
-

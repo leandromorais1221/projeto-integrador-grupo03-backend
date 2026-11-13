@@ -1,4 +1,3 @@
-import enum
 import uuid
 from decimal import Decimal
 from datetime import datetime, date as TypeDate

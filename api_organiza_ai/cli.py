@@ -1,6 +1,6 @@
 import click
 from flask.cli import with_appcontext
-from .database.seeder import populate_db
+from .database.seeder_db import populate_db
 
 
 @click.command('db-seed')

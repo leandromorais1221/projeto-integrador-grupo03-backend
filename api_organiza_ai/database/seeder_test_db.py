@@ -4,7 +4,6 @@ from ..config.extensions import db
 from datetime import datetime
 
 def mock_db():
-
     user = {
         "id": "fa8a6508-a7e6-4bad-8125-e0fcc369f9e1",
         "name": "Usuario Teste",

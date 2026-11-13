@@ -1,4 +1,3 @@
-
 from api_organiza_ai.config.extensions import db
 from api_organiza_ai.models import Transaction, Category
 from sqlalchemy import select
@@ -3704,5 +3703,3 @@ def test_deleta_transacao_existente(auth, app):
     data = response.json
     assert response.status_code == 200
     assert data['message'] == 'Transação deletada com sucesso'
-
-

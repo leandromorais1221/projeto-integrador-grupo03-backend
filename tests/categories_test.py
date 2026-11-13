@@ -1,4 +1,3 @@
-
 from api_organiza_ai.config.extensions import db
 from api_organiza_ai.models import Category
 from sqlalchemy import select
@@ -250,18 +249,3 @@ def test_rejeita_deletar_categoria_com_transacoes_vinculadas(auth, app):
     data = request.json
     assert request.status_code == 409
     assert data['message'] == 'Erro a categoria não pode ser excluída pois há transações vinculadas'
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-

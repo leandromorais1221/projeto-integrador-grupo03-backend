@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from ..models import Category, Transaction
+from ..models import Category
 from flask_pydantic import validate
 from ..schemas import CategorySchema
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -385,9 +385,3 @@ def categories_delete(category_id: UUID):
     return jsonify({
         'message': 'Categoria deletada com sucesso'
     }), 200
-    
-
-
-
-
-
